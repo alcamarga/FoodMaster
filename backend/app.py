@@ -885,10 +885,8 @@ def eliminar_usuario(id):
 @cross_origin(origins="http://localhost:4200", supports_credentials=True)
 def get_rentabilidad():
     """
-    Devuelve el análisis de rentabilidad por producto:
+    Devuelve el análisis de rentabilidad por producto filtrado por tamaño:
     costo de producción, precio de venta, ganancia y margen %.
-    También incluye resumen: producto más rentable, mayor costo y
-    ganancia total estimada de pedidos completados.
     """
     if flask_request.method == 'OPTIONS':
         return jsonify({}), 200
@@ -896,17 +894,26 @@ def get_rentabilidad():
     payload, err = _verificar_token_admin()
     if err: return err
 
-    from models.producto import Producto
+    from models.producto import Producto, SizeEnum
     from models.pedido import Pedido
     import json as _json
 
+    # Obtener tamaño de los parámetros de consulta, por defecto Pequeña
+    size_str = flask_request.args.get('size', 'Pequeña')
+    try:
+        # Intentamos mapear el string al enum
+        # Si el string viene como "Pequeña", buscamos el miembro cuyo valor sea ese.
+        size_enum = next(s for s in SizeEnum if s.value == size_str)
+    except StopIteration:
+        size_enum = SizeEnum.PEQUENA
+
     productos = Producto.query.all()
-    items_rentabilidad = [p.rentabilidad() for p in productos]
+    items_rentabilidad = [p.rentabilidad(size_enum) for p in productos]
 
     # Ordenar por margen descendente
     items_rentabilidad.sort(key=lambda x: x['margen_porcentaje'], reverse=True)
 
-    # Resumen: más rentable y mayor costo
+    # Resumen: más rentable y mayor costo para ese tamaño específico
     mas_rentable = max(items_rentabilidad, key=lambda x: x['margen_porcentaje'], default=None)
     mayor_costo = max(items_rentabilidad, key=lambda x: x['costo_produccion'], default=None)
 

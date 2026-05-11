@@ -25,6 +25,14 @@
         <button class="btn-save" (click)="guardarReceta()">Guardar Cambios</button>
       </div>
 
+      <!-- Selector de Tamaño -->
+      <div class="size-selector-container">
+        <label for="tamano">Tamaño de la Pizza:</label>
+        <select id="tamano" [(ngModel)]="tamanoSeleccionado" (change)="cambiarTamano()" class="size-select">
+          <option *ngFor="let t of tamanos" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
       <div *ngIf="recetaActual.length > 0">
         <table class="recipe-table">
           <thead>

@@ -15,7 +15,7 @@
 
 /* Wrapper principal | Main wrapper */
 .dash-container {
-  background-image: url('/assets/pizzeria-app-core.jpg');
+  background-image: url('/assets/images/pizzeria-app-core.jpg');
   background-size: cover;
   background-position: center;
   min-height: 100vh;

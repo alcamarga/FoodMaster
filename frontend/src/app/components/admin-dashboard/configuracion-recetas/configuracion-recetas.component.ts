@@ -24,6 +24,8 @@ export class ConfiguracionRecetasComponent implements OnInit {
   
   pizzaSeleccionadaId: number | null = null;
   recetaActual: RecetaItem[] = [];
+  tamanos = ['Pequeña', 'Mediana', 'Familiar'];
+  tamanoSeleccionado = 'Pequeña';
   
   nuevoIngrediente = {
     insumo_id: 0,
@@ -52,7 +54,18 @@ export class ConfiguracionRecetasComponent implements OnInit {
 
   seleccionarPizza(id: number): void {
     this.pizzaSeleccionadaId = id;
-    this.recipeService.obtenerReceta(id).subscribe(res => {
+    this.cargarReceta();
+  }
+
+  cambiarTamano(): void {
+    if (this.pizzaSeleccionadaId) {
+      this.cargarReceta();
+    }
+  }
+
+  cargarReceta(): void {
+    if (!this.pizzaSeleccionadaId) return;
+    this.recipeService.obtenerReceta(this.pizzaSeleccionadaId, this.tamanoSeleccionado).subscribe(res => {
       this.recetaActual = res.receta;
     });
   }
@@ -86,7 +99,7 @@ export class ConfiguracionRecetasComponent implements OnInit {
   guardarReceta(): void {
     if (!this.pizzaSeleccionadaId) return;
     
-    this.recipeService.guardarReceta(this.pizzaSeleccionadaId, this.recetaActual).subscribe({
+    this.recipeService.guardarReceta(this.pizzaSeleccionadaId, this.recetaActual, this.tamanoSeleccionado).subscribe({
       next: () => {
         alert('✅ Receta guardada con éxito');
       },

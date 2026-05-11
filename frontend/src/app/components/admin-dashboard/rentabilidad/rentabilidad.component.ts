@@ -3,6 +3,7 @@
 
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   RentabilidadService,
   RentabilidadItem,
@@ -12,7 +13,7 @@ import {
 @Component({
   selector: 'app-rentabilidad',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './rentabilidad.component.html',
   styleUrls: ['./rentabilidad.component.css']
 })
@@ -23,6 +24,9 @@ export class RentabilidadComponent implements OnInit {
   resumen = signal<ResumenRentabilidad | null>(null);
   cargando = signal(true);
   error = signal<string | null>(null);
+  
+  tamanos = ['Pequeña', 'Mediana', 'Familiar'];
+  tamanoSeleccionado = 'Pequeña';
 
   // Computed: productos ordenados por margen descendente (ya vienen ordenados del backend)
   productosFiltrados = computed(() => this.productos());
@@ -31,10 +35,14 @@ export class RentabilidadComponent implements OnInit {
     this.cargar();
   }
 
+  cambiarTamano(): void {
+    this.cargar();
+  }
+
   cargar(): void {
     this.cargando.set(true);
     this.error.set(null);
-    this.rentabilidadService.obtenerRentabilidad().subscribe({
+    this.rentabilidadService.obtenerRentabilidad(this.tamanoSeleccionado).subscribe({
       next: (res) => {
         this.productos.set(res.productos);
         this.resumen.set(res.resumen);

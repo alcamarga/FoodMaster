@@ -216,7 +216,7 @@
 
 /* Fondo consistente con el resto de la app */
 .mis-pedidos-page {
-  background-image: url('/assets/pizzeria-app-core.jpg');
+  background-image: url('/assets/images/pizzeria-app-core.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

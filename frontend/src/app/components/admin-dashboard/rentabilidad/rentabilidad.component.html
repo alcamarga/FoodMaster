@@ -1,11 +1,24 @@
 <div class="rentabilidad-container p-4">
 
   <!-- Encabezado -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <h2 class="text-gold mb-0">📊 Análisis de Rentabilidad</h2>
-    <button class="btn btn-outline-warning btn-sm fw-bold" (click)="cargar()" [disabled]="cargando()">
-      @if (cargando()) { ⏳ Cargando... } @else { 🔄 Actualizar }
-    </button>
+    
+    <div class="d-flex align-items-center gap-3">
+      <div class="size-filter d-flex align-items-center gap-2">
+        <label class="text-white-50 small mb-0">Ver tamaño:</label>
+        <select class="form-select form-select-sm bg-dark text-white border-gold" 
+                [(ngModel)]="tamanoSeleccionado" 
+                (change)="cambiarTamano()" 
+                style="width: 140px; cursor: pointer;">
+          <option *ngFor="let t of tamanos" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <button class="btn btn-outline-warning btn-sm fw-bold" (click)="cargar()" [disabled]="cargando()">
+        @if (cargando()) { ⏳ Cargando... } @else { 🔄 Actualizar }
+      </button>
+    </div>
   </div>
 
   <!-- Error -->

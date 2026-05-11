@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  # Tu aplicación de pizzería
+  app_pizzeria:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_pizzeria
+
+  # La base de datos (como la que ya probamos)
+  db_pizzeria:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: camilo_admin
+      POSTGRES_PASSWORD: pizzapassword
+      POSTGRES_DB: pizzeria_db

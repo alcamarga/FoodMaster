@@ -47,7 +47,7 @@ def listar_pedidos():
     return render_template('pedidos/listar_pedidos.html', pedidos=todos_los_pedidos)
 
 @pedidos_blueprint.route('/pedidos', methods=['GET', 'POST', 'OPTIONS'])
-@cross_origin(supports_credentials=True)
+@cross_origin(origins="http://localhost:4200", supports_credentials=True)
 def api_pedidos():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
@@ -120,7 +120,7 @@ def api_pedidos():
         return jsonify({"error": str(e)}), 500
 
 @pedidos_blueprint.route('/pedidos/<int:id>/estado', methods=['PATCH', 'OPTIONS'])
-@cross_origin(supports_credentials=True)
+@cross_origin(origins="http://localhost:4200", supports_credentials=True)
 def api_actualizar_estado_pedido(id):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
@@ -147,14 +147,33 @@ def api_actualizar_estado_pedido(id):
                     if not pizza_id: continue
                     cantidad_pedida = art.get('cantidad', 1)
                     
-                    # Buscar receta de este producto
-                    receta_items = RecetaItem.query.filter_by(producto_id=pizza_id).all()
+                    # Buscar receta de este producto filtrando por TAMAÑO
+                    from models.producto import SizeEnum
+                    tamano_pedida_str = art.get('tamano', 'Pequeña')
+                    try:
+                        tamano_enum = next(s for s in SizeEnum if s.value == tamano_pedida_str)
+                    except StopIteration:
+                        tamano_enum = SizeEnum.PEQUENA
+                        
+                    receta_items = RecetaItem.query.filter_by(producto_id=pizza_id, size=tamano_enum).all()
+                    
+                    if not receta_items:
+                        # Si no hay receta para ese tamaño, buscar la predeterminada (Pequeña)
+                        print(f"[DEBUG] No hay receta para {tamano_pedida}, usando 'Pequeña'")
+                        receta_items = RecetaItem.query.filter_by(producto_id=pizza_id, size='Pequeña').all()
+
                     for r_item in receta_items:
                         # Descontar insumo proporcionalmente
                         insumo = r_item.insumo
                         if insumo:
                             descuento_total = r_item.cantidad_gastada * cantidad_pedida
-                            insumo.cantidad = float(insumo.cantidad) - descuento_total
+                            # Aseguramos que usamos el atributo correcto (cantidad o cantidad_actual)
+                            # Viendo el modelo de Insumo (visto en pasos previos), parece ser cantidad_actual
+                            # pero en este blueprint usan .cantidad? Vamos a verificar el modelo Insumo.
+                            if hasattr(insumo, 'cantidad_actual'):
+                                insumo.cantidad_actual = float(insumo.cantidad_actual) - descuento_total
+                            else:
+                                insumo.cantidad = float(insumo.cantidad) - descuento_total
                             
             pedido.inventario_deducido = True
             
@@ -273,7 +292,7 @@ def registro():
 from flask_cors import cross_origin
 
 @pedidos_blueprint.route('/pizzas', methods=['GET', 'POST', 'OPTIONS'])
-@cross_origin(supports_credentials=True)
+@cross_origin(origins="http://localhost:4200", supports_credentials=True)
 def api_pizzas():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
@@ -459,7 +478,7 @@ def api_eliminar_pizza(id):
         return jsonify({"error": str(e)}), 500
 
 @pedidos_blueprint.route('/pizzas/<int:id>/receta', methods=['GET', 'POST', 'OPTIONS'])
-@cross_origin(supports_credentials=True)
+@cross_origin(origins="http://localhost:4200", supports_credentials=True)
 def api_receta(id):
     if request.method == 'OPTIONS':
         return jsonify({}), 200
@@ -469,9 +488,16 @@ def api_receta(id):
     if request.method == 'POST':
         try:
             data = request.get_json()
+            # El frontend enviará el tamaño seleccionado
+            from models.producto import SizeEnum
+            requested_size_str = request.args.get('size', 'Pequeña')
+            try:
+                requested_size = next(s for s in SizeEnum if s.value == requested_size_str)
+            except StopIteration:
+                requested_size = SizeEnum.PEQUENA
             
-            # Borrar receta anterior de este producto
-            RecetaItem.query.filter_by(producto_id=id).delete()
+            # Borrar receta anterior de este producto PARA ESTE TAMAÑO SOLAMENTE
+            RecetaItem.query.filter_by(producto_id=id, size=requested_size).delete()
             
             # Insertar los nuevos items
             nuevos_items = []
@@ -479,26 +505,38 @@ def api_receta(id):
                 nuevo = RecetaItem(
                     producto_id=id,
                     insumo_id=item['insumo_id'],
-                    cantidad_gastada=item['cantidad_gastada']
+                    cantidad_gastada=item['cantidad_gastada'],
+                    size=requested_size
                 )
                 db.session.add(nuevo)
                 nuevos_items.append(nuevo)
                 
             db.session.commit()
-            return jsonify({"message": "Receta actualizada"}), 200
+            return jsonify({"message": f"Receta para tamaño {requested_size} actualizada"}), 200
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": str(e)}), 500
 
     try:
-        receta_items = RecetaItem.query.filter_by(producto_id=id).all()
+        from models.producto import SizeEnum
+        requested_size_str = request.args.get('size')
+        query = RecetaItem.query.filter_by(producto_id=id)
+        if requested_size_str:
+            try:
+                requested_size = next(s for s in SizeEnum if s.value == requested_size_str)
+                query = query.filter_by(size=requested_size)
+            except StopIteration:
+                pass # Si el tamaño no es válido, no filtramos por tamaño o usamos default
+        
+        receta_items = query.all()
         receta_json = [
             {
                 "pizza_id": r.producto_id,
                 "insumo_id": r.insumo_id,
                 "insumo_nombre": r.insumo.nombre,
                 "cantidad_gastada": float(r.cantidad_gastada),
-                "unidad_medida": getattr(r.insumo, 'unidad_medida', 'gr')
+                "unidad_medida": getattr(r.insumo, 'unidad_medida', 'gr'),
+                "size": r.size.value if hasattr(r.size, 'value') else r.size
             } for r in receta_items
         ]
         return jsonify({"receta": receta_json}), 200

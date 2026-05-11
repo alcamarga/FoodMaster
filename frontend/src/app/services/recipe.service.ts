@@ -17,11 +17,13 @@ export class RecipeService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/pizzas`;
 
-  obtenerReceta(pizzaId: number): Observable<{ receta: RecetaItem[] }> {
-    return this.http.get<{ receta: RecetaItem[] }>(`${this.apiUrl}/${pizzaId}/receta`);
+  obtenerReceta(pizzaId: number, size?: string): Observable<{ receta: RecetaItem[] }> {
+    const url = `${this.apiUrl}/${pizzaId}/receta${size ? '?size=' + size : ''}`;
+    return this.http.get<{ receta: RecetaItem[] }>(url);
   }
 
-  guardarReceta(pizzaId: number, receta: RecetaItem[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${pizzaId}/receta`, receta);
+  guardarReceta(pizzaId: number, receta: RecetaItem[], size?: string): Observable<any> {
+    const url = `${this.apiUrl}/${pizzaId}/receta${size ? '?size=' + size : ''}`;
+    return this.http.post(url, receta);
   }
 }

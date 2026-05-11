@@ -33,7 +33,8 @@ export class RentabilidadService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/admin/rentabilidad`;
 
-  obtenerRentabilidad(): Observable<RespuestaRentabilidad> {
-    return this.http.get<RespuestaRentabilidad>(this.apiUrl);
+  obtenerRentabilidad(size?: string): Observable<RespuestaRentabilidad> {
+    const url = `${this.apiUrl}${size ? '?size=' + size : ''}`;
+    return this.http.get<RespuestaRentabilidad>(url);
   }
 }
