@@ -32,6 +32,13 @@ Para levantar el entorno y correr app.py, sigue estos pasos:
 - **RBAC Profesional**: Control de acceso basado en roles (Admin, Cocinero, Domiciliario) con interfaces adaptativas y seguridad en el backend.
 - **Gestión de Personal Administrativa**: Panel dedicado para que el administrador gestione a su equipo con un CRUD completo (Crear, Editar, Eliminar) y asignación de roles.
 
+## Seguridad e Inteligencia Artificial Local (Self-Hosted)
+A partir de mayo de 2026, el proyecto integra una infraestructura de IA local para auditoría técnica y revisión de código, priorizando la privacidad de los datos y la soberanía tecnológica.
+
+- **Stack**: Open WebUI desplegado en Docker (WSL2/SSD) conectado a **Ollama**.
+- **Modelos**: Gemma2 y Llama3 para análisis de lógica de negocio y seguridad.
+- **Caso de Uso Actual**: Auditoría de la capa de seguridad de Flask, específicamente el análisis de headers CORS (Preflight y Access-Control) para mitigar vulnerabilidades de Cross-Origin.
+
 ## Estado actual
 🚀 **Hito Alcanzado: Gestión de Personal Operativa**. El sistema administrativo ya permite el control total sobre la base de usuarios de staff, con persistencia blindada y una interfaz premium de alto rendimiento.
 

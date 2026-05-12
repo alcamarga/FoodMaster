@@ -54,8 +54,7 @@ const projectMemory = [
       "Registro exitoso de nuevos productos (Coca-Cola) con creación automática de categorías."
     ],
     "estado": "FINALIZADO",
-    "notas_proxima_sesion": "Mañana 1 de mayo: Revisión técnica de Login y permisos de usuario.",
-  }
+    "notas_proxima_sesion": "Mañana 1 de mayo: Revisión técnica de Login y permisos de usuario."
   },
   {
     "fecha": "2026-05-01",
@@ -66,6 +65,20 @@ const projectMemory = [
       "Implementar desglose de rentabilidad por tamaños de pizza"
     ],
     "estado": "PENDIENTE"
+  },
+  {
+    "fecha": "2026-05-11",
+    "modulo": "Infraestructura & Seguridad (Local AI)",
+    "tarea": "Implementación de Open WebUI y Auditoría de CORS",
+    "descripcion": "Despliegue de entorno de IA local mediante Docker en WSL2 para análisis de seguridad sin exposición de código a nubes públicas.",
+    "logros": [
+      "Instalación exitosa de Open WebUI en Disco D (SSD) optimizando tiempos de inferencia.",
+      "Integración de Ollama con modelos Gemma2 y Llama3 para revisiones técnicas.",
+      "Análisis exhaustivo de la lógica de CORS en Flask, validando el manejo de preflight (OPTIONS) y headers de acceso.",
+      "Reforzamiento de la privacidad del código fuente mediante el uso de LLMs locales."
+    ],
+    "estado": "COMPLETADO",
+    "notas_proxima_sesion": "Evaluar la automatización de tests de seguridad (CORS) utilizando los insights generados por la IA local."
   }
 ];
 
