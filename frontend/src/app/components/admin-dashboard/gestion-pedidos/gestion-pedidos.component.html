@@ -6,6 +6,7 @@
 
   <div *ngIf="cargando" class="loading">
     <div class="spinner"></div>
+    <p class="text-white mt-2">Cargando pedidos...</p>
   </div>
 
   <div *ngIf="!cargando" class="table-wrapper">
@@ -44,20 +45,22 @@
             </button>
           </td>
         </tr>
-        <tr *ngIf="pedidos.length === 0">
-          <td colspan="8" class="text-center text-muted py-4">No hay pedidos registrados.</td>
+
+        <tr *ngIf="!pedidos || pedidos.length === 0">
+          <td colspan="8" class="text-center text-muted py-5">
+            <div class="fs-4 opacity-50">📭</div>
+            No hay pedidos registrados en el sistema.
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Toast -->
   <div class="toast-notification" [class.show]="mostrarToast()">
     {{ mensajeToast() }}
   </div>
 </div>
 
-<!-- ===== MODAL: Detalle del Pedido ===== -->
 <div class="modal-overlay" *ngIf="mostrarDetalle" (click)="cerrarDetalle()">
   <div class="modal-detalle" (click)="$event.stopPropagation()">
 
@@ -68,14 +71,12 @@
 
     <div class="modal-detalle-body" *ngIf="pedidoDetalle">
 
-      <!-- Info general -->
       <div class="detalle-meta">
         <span>📅 {{ pedidoDetalle.fecha_hora || pedidoDetalle.fecha || '—' }}</span>
         <span>👤 {{ pedidoDetalle.cliente || ('User #' + pedidoDetalle.usuario_id) }}</span>
         <span class="badge-estado">{{ pedidoDetalle.estado || 'Pendiente' }}</span>
       </div>
 
-      <!-- Artículos -->
       <table class="detalle-table" *ngIf="pedidoDetalle.articulos && pedidoDetalle.articulos.length > 0">
         <thead>
           <tr>
@@ -89,7 +90,7 @@
         <tbody>
           <tr *ngFor="let art of pedidoDetalle.articulos">
             <td class="fw-bold">{{ art.nombre }}</td>
-            <td class="text-center text-white-50">{{ art.tamano }}</td>
+            <td class="text-center text-white-50">{{ art.tamano || 'N/A' }}</td>
             <td class="text-center">{{ art.cantidad }}</td>
             <td class="text-end text-white-50">${{ art.precio | number:'1.0-0' }}</td>
             <td class="text-end text-warning fw-bold">${{ (art.precio * art.cantidad) | number:'1.0-0' }}</td>
@@ -97,14 +98,12 @@
         </tbody>
       </table>
 
-      <!-- Fallback si no hay artículos -->
       <div *ngIf="!pedidoDetalle.articulos || pedidoDetalle.articulos.length === 0"
            class="text-center text-muted py-3">
         <span *ngIf="pedidoDetalle.pizzas">{{ pedidoDetalle.pizzas }}</span>
         <span *ngIf="!pedidoDetalle.pizzas">Sin detalle de productos disponible.</span>
       </div>
 
-      <!-- Totales -->
       <div class="detalle-totales">
         <div class="detalle-fila">
           <span>Subtotal</span>
@@ -116,7 +115,7 @@
         </div>
         <div class="detalle-fila total-final">
           <span>TOTAL</span>
-          <span>${{ pedidoDetalle.total | number:'1.0-0' }}</span>
+          <span>${{ (pedidoDetalle.total || 0) | number:'1.0-0' }}</span>
         </div>
       </div>
 

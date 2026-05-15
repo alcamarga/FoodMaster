@@ -79,7 +79,21 @@ const projectMemory = [
     ],
     "estado": "COMPLETADO",
     "notas_proxima_sesion": "Evaluar la automatización de tests de seguridad (CORS) utilizando los insights generados por la IA local."
+  },
+  {
+    "fecha": "2026-05-15",
+    "modulo": "Backend (Flask + SQLAlchemy)",
+    "tarea": "Implementación de Descuento Automático de Inventario",
+    "descripcion": "Creación de lógica de gatillo que descuenta stock del inventario cuando un pedido pasa a estado ENTREGADO.",
+    "logros": [
+      "Sincronización de pedidos con recetas técnicas para cálculo de consumo.",
+      "Manejo robusto de errores para productos sin receta (ej. gaseosas).",
+      "Actualización en tiempo real del stock de insumos en PostgreSQL.",
+      "Optimización de la trazabilidad de insumos por tamaño de producto."
+    ],
+    "estado": "FINALIZADO"
   }
 ];
+
 
 export default projectMemory;

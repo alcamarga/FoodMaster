@@ -18,43 +18,64 @@ export class ConfiguracionRecetasComponent implements OnInit {
   private recipeService = inject(RecipeService);
   private pizzaService = inject(PizzaService);
   private insumosService = inject(InsumosService);
+  private authService = inject(AuthService);
 
+  // Estados
   pizzas = signal<Pizza[]>([]);
   insumosDisponibles = signal<Insumo[]>([]);
+  cargando = signal(false);
   
   pizzaSeleccionadaId: number | null = null;
   recetaActual: RecetaItem[] = [];
-  tamanos = ['Pequeña', 'Mediana', 'Familiar'];
-  tamanoSeleccionado = 'Pequeña';
+  tamanos: string[] = []; // Se llena dinámicamente
+  tamanoSeleccionado = '';
   
   nuevoIngrediente = {
     insumo_id: 0,
     cantidad_gastada: 0
   };
 
-  private authService = inject(AuthService);
-
   ngOnInit(): void {
+    // Escuchamos la sesión para cargar los datos iniciales
     this.authService.sesionActiva$.subscribe(sesion => {
       if (sesion) {
-        console.log('[ConfigRecetas] Sesión detectada, cargando catálogos...');
-        this.cargarPizzas();
-        this.cargarInsumos();
+        this.cargarCatalogos();
       }
     });
   }
 
-  cargarPizzas(): void {
+  cargarCatalogos(): void {
     this.pizzaService.obtenerCatalogoPizzas().subscribe(res => this.pizzas.set(res));
-  }
-
-  cargarInsumos(): void {
     this.insumosService.getInsumos().subscribe(res => this.insumosDisponibles.set(res));
   }
 
   seleccionarPizza(id: number): void {
+    const pizza = this.pizzas().find(p => p.id === id);
+    if (!pizza) return;
+
     this.pizzaSeleccionadaId = id;
+    
+    // Generamos los tamaños dinámicamente según la categoría y precios definidos
+    const cat = pizza.categoria || 'Pizza';
+    const etiquetasPosibles = this.obtenerEtiquetasPorCategoria(cat);
+    
+    this.tamanos = [];
+    if (pizza.precio_1 && pizza.precio_1 > 0) this.tamanos.push(etiquetasPosibles[0]);
+    if (pizza.precio_2 && pizza.precio_2 > 0) this.tamanos.push(etiquetasPosibles[1]);
+    if (pizza.precio_3 && pizza.precio_3 > 0) this.tamanos.push(etiquetasPosibles[2]);
+
+    // Si no hay precios definidos pero es "Otros" o similar, al menos uno
+    if (this.tamanos.length === 0) this.tamanos = [etiquetasPosibles[0] || 'Único'];
+
+    this.tamanoSeleccionado = this.tamanos[0];
     this.cargarReceta();
+  }
+
+  private obtenerEtiquetasPorCategoria(cat: string): string[] {
+    if (cat === 'Pizza') return ['Personal', 'Mediana', 'Familiar'];
+    if (cat === 'Gaseosa') return ['Personal', 'Litro', 'Familiar'];
+    if (cat === 'Lasaña') return ['Pequeña', 'Grande'];
+    return ['Único'];
   }
 
   cambiarTamano(): void {
@@ -65,30 +86,63 @@ export class ConfiguracionRecetasComponent implements OnInit {
 
   cargarReceta(): void {
     if (!this.pizzaSeleccionadaId) return;
-    this.recipeService.obtenerReceta(this.pizzaSeleccionadaId, this.tamanoSeleccionado).subscribe(res => {
-      this.recetaActual = res.receta;
+    this.cargando.set(true);
+    this.recipeService.obtenerReceta(this.pizzaSeleccionadaId, this.tamanoSeleccionado).subscribe({
+      next: (res) => {
+        // Si el backend devuelve la receta en res.receta o directo en res
+        this.recetaActual = res.receta || res || [];
+        this.cargando.set(false);
+      },
+      error: () => {
+        this.recetaActual = [];
+        this.cargando.set(false);
+      }
     });
   }
 
+  // --- Lógica de la Tabla de Ingredientes ---
+
   agregarIngrediente(): void {
-    if (this.nuevoIngrediente.insumo_id === 0 || this.nuevoIngrediente.cantidad_gastada <= 0) return;
+    // Validaciones básicas
+    if (this.nuevoIngrediente.insumo_id === 0) {
+        alert("Por favor selecciona un insumo");
+        return;
+    }
+    if (this.nuevoIngrediente.cantidad_gastada <= 0) {
+        alert("La cantidad debe ser mayor a 0");
+        return;
+    }
+
+    const listaInsumos = this.insumosDisponibles();
     
-    const insumo = this.insumosDisponibles().find(i => i.id == this.nuevoIngrediente.insumo_id);
+    // Seguridad: verificamos que la lista no esté vacía
+    if (!listaInsumos || listaInsumos.length === 0) return;
+
+    const insumoInfo = listaInsumos.find(i => i.id == this.nuevoIngrediente.insumo_id);
     
-    // Evitar duplicados
-    const existe = this.recetaActual.find(r => r.insumo_id == this.nuevoIngrediente.insumo_id);
-    if (existe) {
-      existe.cantidad_gastada = this.nuevoIngrediente.cantidad_gastada;
+    if (!insumoInfo) {
+        alert("Error: No se encontró la información del insumo");
+        return;
+    }
+
+    // Buscamos si ya existe para actualizarlo o agregarlo
+    const indexExistente = this.recetaActual.findIndex(r => r.insumo_id == this.nuevoIngrediente.insumo_id);
+
+    if (indexExistente !== -1) {
+      // Si ya existe, sumamos la cantidad
+      this.recetaActual[indexExistente].cantidad_gastada = this.nuevoIngrediente.cantidad_gastada;
     } else {
+      // Si no existe, lo agregamos a la lista local
       this.recetaActual.push({
         pizza_id: this.pizzaSeleccionadaId!,
-        insumo_id: this.nuevoIngrediente.insumo_id,
-        insumo_nombre: insumo?.nombre,
+        insumo_id: Number(this.nuevoIngrediente.insumo_id),
+        insumo_nombre: insumoInfo.nombre,
         cantidad_gastada: this.nuevoIngrediente.cantidad_gastada,
-        unidad_medida: insumo?.unidad_medida
+        unidad_medida: insumoInfo.unidad_medida || 'gr'
       });
     }
     
+    // Limpiamos el formulario pequeño
     this.nuevoIngrediente = { insumo_id: 0, cantidad_gastada: 0 };
   }
 
@@ -97,15 +151,29 @@ export class ConfiguracionRecetasComponent implements OnInit {
   }
 
   guardarReceta(): void {
-    if (!this.pizzaSeleccionadaId) return;
+    if (!this.pizzaSeleccionadaId) {
+        alert('Selecciona una pizza primero');
+        return;
+    }
     
-    this.recipeService.guardarReceta(this.pizzaSeleccionadaId, this.recetaActual, this.tamanoSeleccionado).subscribe({
+    if (this.recetaActual.length === 0) {
+        if (!confirm('La receta está vacía. ¿Deseas guardar una receta sin ingredientes?')) return;
+    }
+
+    this.cargando.set(true);
+    this.recipeService.guardarReceta(
+        this.pizzaSeleccionadaId, 
+        this.recetaActual, 
+        this.tamanoSeleccionado
+    ).subscribe({
       next: () => {
-        alert('✅ Receta guardada con éxito');
+        this.cargando.set(false);
+        alert('✅ ¡Receta de ' + this.tamanoSeleccionado + ' guardada con éxito!');
       },
       error: (err) => {
-        console.error('Error al guardar receta:', err);
-        alert('❌ Error al guardar la receta');
+        this.cargando.set(false);
+        console.error('Error:', err);
+        alert('❌ Error al guardar: ' + (err.error?.error || 'Problema de conexión'));
       }
     });
   }

@@ -3,14 +3,14 @@
 
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { UserService, PersonalPayload } from '../../../services/user.service';
 import { Usuario, RolUsuario } from '../../../models/usuario.model';
 
 @Component({
   selector: 'app-gestion-personal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './gestion-personal.component.html',
   styleUrls: ['./gestion-personal.component.css']
 })
@@ -18,6 +18,7 @@ export class GestionPersonalComponent implements OnInit {
   private userService = inject(UserService);
 
   // --- Estado principal ---
+  // Inicializamos con un array vacío para que personal().length nunca falle
   personal = signal<Usuario[]>([]);
   cargando = signal(false);
   mensajeExito = signal<string | null>(null);
@@ -49,11 +50,16 @@ export class GestionPersonalComponent implements OnInit {
     this.cargando.set(true);
     this.userService.obtenerPersonal().subscribe({
       next: (res) => {
-        this.personal.set(res.usuarios);
+        // BLINDAJE: Verificamos si res es el array directo o viene dentro de un objeto
+        const lista = Array.isArray(res) ? res : (res?.usuarios || []);
+        this.personal.set(lista);
         this.cargando.set(false);
+        console.log('Personal cargado:', lista.length);
       },
       error: (err) => {
-        this.mostrarError('No se pudo cargar el personal: ' + (err.error?.error || err.message));
+        console.error('Error cargando personal:', err);
+        this.mostrarError('No se pudo cargar el personal');
+        this.personal.set([]); // Ante error, vaciamos para evitar undefined
         this.cargando.set(false);
       }
     });

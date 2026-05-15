@@ -10,7 +10,7 @@ export interface Insumo {
   id: number;
   nombre: string;
   cantidad: number;
-  precio_unidad: number;   // precio de compra por unidad de medida
+  precio: number;   // precio de compra por unidad de medida
   unidad_medida?: string;
   stock_minimo?: number;
 }
@@ -19,7 +19,7 @@ export interface Insumo {
 export interface InsumoPayload {
   nombre: string;
   cantidad: number;
-  precio_unidad: number;
+  precio: number;
   unidad_medida: string;
   stock_minimo: number;
 }

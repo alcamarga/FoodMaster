@@ -102,7 +102,8 @@
             </tr>
           </thead>
           <tbody>
-            @for (p of productosFiltrados(); track p.id) {
+            @for (p of productosFiltrados(); track p.id + '-' + p.tamano) {
+
               <tr [ngClass]="claseMargen(p.margen_porcentaje)">
                 <td class="fw-bold text-white">{{ p.nombre }}</td>
                 <td>

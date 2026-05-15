@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OrderService, Pedido, ItemPedido } from '../../../services/order.service';
+import { OrderService, Pedido } from '../../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { catchError } from 'rxjs/operators';
 import { throwError, Subscription } from 'rxjs';
@@ -15,25 +15,31 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class GestionPedidosComponent implements OnInit, OnDestroy {
   private orderService = inject(OrderService);
+  private authService = inject(AuthService);
+  
+  // BLINDAJE: Inicializamos como arreglo vacío para evitar error de .length
   pedidos: Pedido[] = [];
   cargando = true;
 
-  // Toast
+  // Signals para UI
   mostrarToast = signal(false);
   mensajeToast = signal('');
 
-  // Modal detalle
+  // Detalle del pedido
   pedidoDetalle: Pedido | null = null;
   mostrarDetalle = false;
 
   estadosDisponibles = ['Pendiente', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
-
-  private authService = inject(AuthService);
   private sub: Subscription | null = null;
 
   ngOnInit(): void {
+    // Nos suscribimos al estado de la sesión para cargar los pedidos apenas el admin entre
     this.sub = this.authService.sesionActiva$.subscribe(sesion => {
-      if (sesion) this.cargarTodosLosPedidos();
+      if (sesion) {
+        this.cargarTodosLosPedidos();
+      } else {
+        this.cargando = false;
+      }
     });
   }
 
@@ -42,13 +48,22 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
   }
 
   cargarTodosLosPedidos(): void {
+    this.cargando = true;
     this.orderService.obtenerPedidos().subscribe({
       next: (res) => {
-        this.pedidos = res.pedidos;
+        // Verificamos que la respuesta traiga la propiedad 'pedidos'
+        // Si no existe o es nula, asignamos un arreglo vacío
+        if (res && res.pedidos) {
+          this.pedidos = res.pedidos;
+        } else {
+          this.pedidos = [];
+        }
         this.cargando = false;
+        console.log('📦 Pedidos cargados con éxito:', this.pedidos.length);
       },
       error: (err) => {
-        console.error('Error al cargar pedidos:', err);
+        console.error('❌ Error al cargar pedidos:', err);
+        this.pedidos = []; // Mantenemos el arreglo vacío en caso de error
         this.cargando = false;
       }
     });
@@ -60,7 +75,9 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
         this.lanzarToast('❌ Error al actualizar el estado');
         return throwError(() => err);
       })
-    ).subscribe(() => this.lanzarToast(`✅ Estado actualizado: ${nuevoEstado}`));
+    ).subscribe(() => {
+      this.lanzarToast(`✅ Estado actualizado: ${nuevoEstado}`);
+    });
   }
 
   verDetalle(pedido: Pedido): void {

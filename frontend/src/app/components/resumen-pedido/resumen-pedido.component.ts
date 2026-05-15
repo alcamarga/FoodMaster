@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core'; // Importamos computed
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
@@ -16,8 +16,10 @@ export class ResumenPedidoComponent {
   authService = inject(AuthService);
   router = inject(Router);
 
-  // Acceso directo a los items reactivos
-  items = this.cartService.items;
+  // 1. Acceso a los items con una señal computada para asegurar que siempre sea un array
+  // Esto evita el error de "reading length of undefined"
+  items = computed(() => this.cartService.items() || []);
+  
   total = this.cartService.totalCarrito;
   iva = this.cartService.ivaCarrito;
   totalConIva = this.cartService.totalConIva;
@@ -50,6 +52,7 @@ export class ResumenPedidoComponent {
       return;
     }
 
+    // 2. Verificación segura usando la señal computada
     if (this.items().length === 0) {
       alert('Tu carrito está vacío.');
       return;

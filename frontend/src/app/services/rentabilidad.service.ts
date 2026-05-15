@@ -10,7 +10,9 @@ export interface RentabilidadItem {
   id: number;
   nombre: string;
   categoria: string;
+  tamano: string;
   costo_produccion: number;
+
   precio_venta: number;
   ganancia: number;
   margen_porcentaje: number;

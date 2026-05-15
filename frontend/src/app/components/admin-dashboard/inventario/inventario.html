@@ -6,51 +6,47 @@
     </button>
   </div>
 
-  <!-- Alertas -->
   @if (mensajeExito()) {
-    <div class="alert alert-success alert-dismissible py-2 mb-3" role="alert">
-      {{ mensajeExito() }}
-      <button type="button" class="btn-close btn-close-white" (click)="mensajeExito.set(null)"></button>
-    </div>
+  <div class="alert alert-success alert-dismissible py-2 mb-3" role="alert">
+    {{ mensajeExito() }}
+    <button type="button" class="btn-close btn-close-white" (click)="mensajeExito.set(null)"></button>
+  </div>
   }
   @if (mensajeError()) {
-    <div class="alert alert-danger alert-dismissible py-2 mb-3" role="alert">
-      {{ mensajeError() }}
-      <button type="button" class="btn-close btn-close-white" (click)="mensajeError.set(null)"></button>
-    </div>
+  <div class="alert alert-danger alert-dismissible py-2 mb-3" role="alert">
+    {{ mensajeError() }}
+    <button type="button" class="btn-close btn-close-white" (click)="mensajeError.set(null)"></button>
+  </div>
   }
 
-  <!-- Formulario nuevo insumo -->
   <div class="card p-3 border-warning bg-dark mb-4" *ngIf="mostrarFormulario" style="border-radius: 8px;">
     <h5 class="text-warning mb-3">Registrar Nuevo Insumo</h5>
     <div class="row g-2 align-items-end">
       <div class="col-md-3">
         <label class="form-label text-white small mb-1">Nombre <span class="text-danger">*</span></label>
-        <input class="form-control form-control-sm bg-dark text-white border-secondary"
-               placeholder="Ej: Pepperoni" [(ngModel)]="nuevoInsumo.nombre">
+        <input class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="Ej: Pepperoni"
+          [(ngModel)]="nuevoInsumo.nombre">
       </div>
       <div class="col-md-2">
         <label class="form-label text-white small mb-1">Cantidad Inicial</label>
         <input type="number" min="0" class="form-control form-control-sm bg-dark text-white border-secondary"
-               [(ngModel)]="nuevoInsumo.cantidad">
+          [(ngModel)]="nuevoInsumo.cantidad">
       </div>
       <div class="col-md-2">
         <label class="form-label text-white small mb-1">Unidad</label>
-        <select class="form-select form-select-sm bg-dark text-white border-secondary"
-                [(ngModel)]="nuevoInsumo.unidad_medida">
+        <select class="form-select form-select-sm bg-dark text-white border-secondary" [(ngModel)]="nuevoInsumo.unidad">
           <option *ngFor="let u of unidades" [value]="u">{{ u }}</option>
         </select>
       </div>
       <div class="col-md-2">
         <label class="form-label text-warning small mb-1">💲 Precio / Unidad</label>
-        <input type="number" min="0" step="0.01"
-               class="form-control form-control-sm bg-dark text-white border-warning"
-               [(ngModel)]="nuevoInsumo.precio_unidad" placeholder="$0.00">
+        <input type="number" min="0" step="0.01" class="form-control form-control-sm bg-dark text-white border-warning"
+          [(ngModel)]="nuevoInsumo.precio" placeholder="$0.00">
       </div>
       <div class="col-md-1">
         <label class="form-label text-white small mb-1">Stock Mín.</label>
         <input type="number" min="0" class="form-control form-control-sm bg-dark text-white border-secondary"
-               [(ngModel)]="nuevoInsumo.stock_minimo">
+          [(ngModel)]="nuevoInsumo.stock_minimo">
       </div>
       <div class="col-md-2 d-flex gap-2">
         <button class="btn btn-sm btn-success fw-bold w-100" (click)="agregarInsumo()">Guardar</button>
@@ -59,7 +55,6 @@
     </div>
   </div>
 
-  <!-- Tabla -->
   <div class="table-wrapper">
     <table class="inventario-table">
       <thead>
@@ -75,67 +70,83 @@
       </thead>
       <tbody>
         @if (cargando()) {
-          <tr><td colspan="7" class="text-center text-muted py-4">Cargando insumos...</td></tr>
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">Cargando insumos...</td>
+        </tr>
         }
         @for (insumo of insumos(); track insumo.id) {
-          <tr>
-            <td class="fw-bold">{{ insumo.nombre }}</td>
+        <tr>
+          <td class="fw-bold">{{ insumo.nombre }}</td>
 
-            <!-- Cantidad editable inline -->
-            <td class="text-center">
-              @if (editandoId === insumo.id) {
-                <input type="number" min="0"
-                       class="form-control form-control-sm bg-dark text-white border-warning text-center"
-                       style="width: 90px; display: inline-block;"
-                       [(ngModel)]="edicion.cantidad">
-              } @else {
-                {{ insumo.cantidad }}
-              }
-            </td>
+          <td class="text-center">
+            @if (editandoId === insumo.id) {
+            <input type="number" min="0"
+              class="form-control form-control-sm bg-dark text-white border-warning text-center"
+              style="width: 90px; display: inline-block;" [(ngModel)]="edicion.cantidad">
+            } @else {
+            {{ insumo.cantidad }}
+            }
+          </td>
 
-            <td class="text-center text-white-50">{{ insumo.unidad_medida || 'gr' }}</td>
+          <td class="text-center text-white-50">
+            @if (editandoId === insumo.id) {
+            <select class="form-select form-select-sm bg-dark text-white border-warning" [(ngModel)]="edicion.unidad"
+              style="width: 80px; display: inline-block;">
+              <option *ngFor="let u of unidades" [value]="u">{{ u }}</option>
+            </select>
+            } @else {
+            {{ insumo.unidad }}
+            }
+          </td>
 
-            <!-- Precio editable inline -->
-            <td class="text-end">
-              @if (editandoId === insumo.id) {
-                <input type="number" min="0" step="0.01"
-                       class="form-control form-control-sm bg-dark text-white border-warning text-end"
-                       style="width: 110px; display: inline-block;"
-                       [(ngModel)]="edicion.precio_unidad">
-              } @else {
-                <span class="text-warning fw-bold">${{ insumo.precio_unidad | number:'1.2-2' }}</span>
-              }
-            </td>
+          <td class="text-end">
+            @if (editandoId === insumo.id) {
+            <input type="number" min="0" step="0.01"
+              class="form-control form-control-sm bg-dark text-white border-warning text-end"
+              style="width: 100px; display: inline-block;" [(ngModel)]="edicion.precio">
+            } @else {
+            <span class="text-warning fw-bold">${{ insumo.precio | number:'1.2-2' }}</span>
+            }
+          </td>
 
-            <td class="text-center text-white-50">{{ insumo.stock_minimo ?? 0 }}</td>
+          <td class="text-center">
+            @if (editandoId === insumo.id) {
+            <input type="number" min="0"
+              class="form-control form-control-sm bg-dark text-white border-warning text-center"
+              style="width: 80px; display: inline-block;" [(ngModel)]="edicion.stock_minimo">
+            } @else {
+            <span class="text-white-50">{{ insumo.stock_minimo ?? 0 }}</span>
+            }
+          </td>
 
-            <!-- Estado de stock -->
-            <td class="text-center">
-              @if (estadoStock(insumo) === 'bajo') {
-                <span class="badge-danger">⚠️ Stock Bajo</span>
-              } @else {
-                <span class="badge-success">✅ Óptimo</span>
-              }
-            </td>
+          <td class="text-center">
+            @if (estadoStock(insumo) === 'bajo') {
+            <span class="badge-danger">⚠️ Stock Bajo</span>
+            } @else {
+            <span class="badge-success">✅ Óptimo</span>
+            }
+          </td>
 
-            <!-- Acciones -->
-            <td class="text-center">
-              @if (editandoId === insumo.id) {
-                <div class="d-flex gap-1 justify-content-center">
-                  <button class="btn btn-sm btn-success px-2" (click)="guardarEdicion(insumo.id)" title="Guardar">✔</button>
-                  <button class="btn btn-sm btn-outline-light px-2" (click)="cancelarEdicion()" title="Cancelar">✕</button>
-                </div>
-              } @else {
-                <div class="d-flex gap-1 justify-content-center">
-                  <button class="btn btn-sm btn-outline-warning" (click)="iniciarEdicion(insumo)" title="Editar">✏️</button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="eliminarInsumo(insumo.id)" title="Eliminar">🗑️</button>
-                </div>
-              }
-            </td>
-          </tr>
+          <td class="text-center">
+            @if (editandoId === insumo.id) {
+            <div class="d-flex gap-1 justify-content-center">
+              <button class="btn btn-sm btn-success px-2" (click)="guardarEdicion(insumo.id)" title="Guardar">✔</button>
+              <button class="btn btn-sm btn-outline-light px-2" (click)="cancelarEdicion()" title="Cancelar">✕</button>
+            </div>
+            } @else {
+            <div class="d-flex gap-1 justify-content-center">
+              <button class="btn btn-sm btn-outline-warning" (click)="iniciarEdicion(insumo)" title="Editar">✏️</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="eliminarInsumo(insumo.id)"
+                title="Eliminar">🗑️</button>
+            </div>
+            }
+          </td>
+        </tr>
         }
         @if (!cargando() && insumos().length === 0) {
-          <tr><td colspan="7" class="text-center text-muted py-4">No hay insumos registrados.</td></tr>
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">No hay insumos registrados.</td>
+        </tr>
         }
       </tbody>
     </table>

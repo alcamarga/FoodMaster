@@ -1,171 +1,88 @@
-<div class="gestion-container p-4">
-
-  <!-- Encabezado -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-gold mb-0">👥 Gestión de Personal</h2>
-    <button class="btn btn-gold" (click)="abrirModalNuevo()">
-      ➕ Nuevo Empleado
-    </button>
+<div class="gestion-container">
+  <div class="header d-flex justify-content-between align-items-center">
+    <div>
+      <h2>👥 Gestión de Personal</h2>
+      <p>Administración de empleados y roles</p>
+    </div>
+    <button class="btn btn-warning" (click)="abrirModalNuevo()">+ Nuevo Empleado</button>
   </div>
 
-  <!-- Alertas de feedback -->
-  @if (mensajeExito()) {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-      {{ mensajeExito() }}
-      <button type="button" class="btn-close" (click)="mensajeExito.set(null)"></button>
-    </div>
-  }
-  @if (mensajeError()) {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      {{ mensajeError() }}
-      <button type="button" class="btn-close" (click)="mensajeError.set(null)"></button>
-    </div>
-  }
-
-  <!-- Tabla de Personal -->
-  <div class="card bg-dark-glass border-gold">
-    <div class="table-responsive">
-      <table class="table table-dark table-hover mb-0 align-middle">
-        <thead class="text-gold border-gold">
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Fecha Registro</th>
-            <th class="text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (cargando()) {
-            <tr>
-              <td colspan="6" class="text-center text-muted py-4">Cargando personal...</td>
-            </tr>
-          }
-          @for (u of personal(); track u.id) {
-            <tr>
-              <td class="text-muted">#{{ u.id }}</td>
-              <td class="fw-bold text-white">{{ u.nombre }}</td>
-              <td class="text-white-50 small">{{ u.email }}</td>
-
-              <!-- Celda de Rol: badge normal o selector inline -->
-              <td>
-                @if (rolEditandoId === u.id) {
-                  <div class="d-flex align-items-center gap-1">
-                    <select class="form-select form-select-sm bg-dark text-white border-gold"
-                            style="min-width: 130px;"
-                            [(ngModel)]="rolTemporal">
-                      <option *ngFor="let r of rolesDisponibles" [value]="r">{{ r | uppercase }}</option>
-                    </select>
-                    <button class="btn btn-sm btn-success px-2" title="Confirmar" (click)="confirmarCambioRol(u)">✔</button>
-                    <button class="btn btn-sm btn-outline-light px-2" title="Cancelar" (click)="cancelarCambioRol()">✕</button>
-                  </div>
-                } @else {
-                  <span class="badge" [ngClass]="badgeRol(u.rol)" style="cursor:pointer;"
-                        title="Clic para cambiar rol" (click)="activarSelectorRol(u)">
-                    {{ u.rol | uppercase }} ✏️
-                  </span>
-                }
-              </td>
-
-              <td class="text-white-50 small">{{ u.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td>
-                <div class="d-flex gap-1 justify-content-center flex-wrap">
-                  <button class="btn btn-sm btn-outline-warning" title="Editar datos" (click)="prepararEdicion(u)">
-                    ✏️ Editar
-                  </button>
-                  <button class="btn btn-sm btn-outline-info" title="Resetear contraseña" (click)="abrirResetModal(u)">
-                    🔑 Reset
-                  </button>
-                  <button class="btn btn-sm btn-outline-danger" title="Eliminar empleado" (click)="eliminarUsuario(u)">
-                    🗑️
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-          @if (!cargando() && personal().length === 0) {
-            <tr>
-              <td colspan="6" class="text-center text-muted py-4">No hay personal registrado.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+  <div *ngIf="cargando()" class="text-center py-5">
+    <div class="spinner-border text-warning" role="status"></div>
+    <p class="text-white mt-2">Cargando personal...</p>
   </div>
 
-</div>
+  <div *ngIf="!cargando()" class="table-wrapper">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of personal()">
+          <td class="text-warning fw-bold">#{{ u.id }}</td>
+          <td>{{ u.nombre }}</td>
+          <td class="text-white-50">{{ u.email }}</td>
+          <td>
+            <span [class]="'badge ' + badgeRol(u.rol)">
+              {{ u.rol | uppercase }}
+            </span>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-info me-2" (click)="prepararEdicion(u)">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="eliminarUsuario(u)">Borrar</button>
+          </td>
+        </tr>
 
-<!-- ===== MODAL: Crear / Editar Empleado ===== -->
-<div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cerrarFormulario()">
-  <div class="modal-content bg-dark border-gold p-4" (click)="$event.stopPropagation()">
-    <h3 class="text-gold mb-4">{{ editandoId ? '✏️ Editar' : '➕ Registrar' }} Empleado</h3>
-
-    <div class="mb-3">
-      <label class="form-label text-light">Nombre Completo</label>
-      <input type="text" class="form-control bg-dark text-light border-gold"
-             [(ngModel)]="formulario.nombre" placeholder="Ej: Juan Pérez">
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label text-light">Correo Electrónico</label>
-      <input type="email" class="form-control bg-dark text-light border-gold"
-             [(ngModel)]="formulario.email" placeholder="ejemplo@pizzeria.com"
-             [disabled]="!!editandoId">
-    </div>
-
-    <div class="mb-3" *ngIf="!editandoId">
-      <label class="form-label text-light">Contraseña Inicial <span class="text-danger">*</span></label>
-      <input type="password" class="form-control bg-dark text-light border-gold"
-             [(ngModel)]="formulario.password" placeholder="Mínimo 6 caracteres">
-      <div class="form-text text-muted">El empleado podrá cambiarla después.</div>
-    </div>
-
-    <div class="mb-4">
-      <label class="form-label text-light">Rol</label>
-      <select class="form-select bg-dark text-light border-gold" [(ngModel)]="formulario.rol">
-        <option *ngFor="let rol of rolesDisponibles" [value]="rol">{{ rol | uppercase }}</option>
-      </select>
-    </div>
-
-    <div class="d-flex gap-2">
-      <button class="btn btn-outline-light w-100" (click)="cerrarFormulario()">Cancelar</button>
-      <button class="btn btn-gold w-100" (click)="guardarPersonal()">
-        {{ editandoId ? 'Actualizar' : 'Registrar' }}
-      </button>
-    </div>
+        <tr *ngIf="personal().length === 0">
+          <td colspan="5" class="text-center text-muted py-5">No hay personal registrado.</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
-</div>
 
-<!-- ===== MODAL: Reset Password ===== -->
-<div class="modal-overlay" *ngIf="mostrarResetModal" (click)="cerrarResetModal()">
-  <div class="modal-content bg-dark border-gold p-4" (click)="$event.stopPropagation()">
-    <h3 class="text-gold mb-1">🔑 Resetear Contraseña</h3>
-    <p class="text-white-50 mb-4 small">Empleado: <strong class="text-white">{{ usuarioResetNombre }}</strong></p>
-
-    <div class="mb-3">
-      <label class="form-label text-light">Nueva Contraseña</label>
-      <input type="password" class="form-control bg-dark text-light border-gold"
-             [(ngModel)]="nuevaContrasena" placeholder="Mínimo 6 caracteres">
-    </div>
-
-    <div class="mb-4">
-      <label class="form-label text-light">Confirmar Contraseña</label>
-      <input type="password" class="form-control bg-dark text-light border-gold"
-             [(ngModel)]="confirmarContrasena" placeholder="Repite la contraseña">
-      <div class="form-text text-danger small mt-1"
-           *ngIf="confirmarContrasena && nuevaContrasena !== confirmarContrasena">
-        Las contraseñas no coinciden
+  <div class="modal-overlay" *ngIf="mostrarFormulario">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>{{ editandoId ? '📝 Editar Empleado' : '🆕 Nuevo Empleado' }}</h3>
+        <button class="btn-close-custom" (click)="cerrarFormulario()">×</button>
       </div>
-    </div>
+      
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label text-white">Nombre Completo</label>
+          <input type="text" class="form-control bg-dark text-white" [(ngModel)]="formulario.nombre" placeholder="Ej. Juan Perez">
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label text-white">Correo Electrónico</label>
+          <input type="email" class="form-control bg-dark text-white" [(ngModel)]="formulario.email" placeholder="correo@ejemplo.com">
+        </div>
 
-    <div class="d-flex gap-2">
-      <button class="btn btn-outline-light w-100" (click)="cerrarResetModal()">Cancelar</button>
-      <button class="btn btn-warning w-100 fw-bold"
-              (click)="confirmarReset()"
-              [disabled]="!nuevaContrasena || nuevaContrasena !== confirmarContrasena">
-        🔑 Confirmar Reset
-      </button>
+        <div class="mb-3">
+          <label class="form-label text-white">Rol en la Pizzería</label>
+          <select class="form-select bg-dark text-white" [(ngModel)]="formulario.rol">
+            <option *ngFor="let rol of rolesDisponibles" [value]="rol">{{ rol | titlecase }}</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label text-white">Contraseña {{ editandoId ? '(opcional)' : '' }}</label>
+          <input type="password" class="form-control bg-dark text-white" [(ngModel)]="formulario.password" placeholder="Mínimo 6 caracteres">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarFormulario()">Cancelar</button>
+        <button class="btn btn-warning" (click)="guardarPersonal()">
+          {{ editandoId ? 'Actualizar' : 'Registrar' }}
+        </button>
+      </div>
     </div>
   </div>
 </div>

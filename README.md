@@ -40,7 +40,7 @@ A partir de mayo de 2026, el proyecto integra una infraestructura de IA local pa
 - **Caso de Uso Actual**: Auditoría de la capa de seguridad de Flask, específicamente el análisis de headers CORS (Preflight y Access-Control) para mitigar vulnerabilidades de Cross-Origin.
 
 ## Estado actual
-🚀 **Hito Alcanzado: Gestión de Personal Operativa**. El sistema administrativo ya permite el control total sobre la base de usuarios de staff, con persistencia blindada y una interfaz premium de alto rendimiento.
+🚀 **Hito Alcanzado: Descuento Automático de Inventario (15/05/2026)**. El sistema ahora descuenta automáticamente los insumos de la base de datos cuando un pedido es marcado como "ENTREGADO", garantizando un control de stock en tiempo real basado en recetas técnicas.
 
 ### 🍕 Gestión de Inventario Inteligente (Update 24/04/2026)
 El sistema ahora incluye un motor de descuentos automáticos vinculado al estado de los pedidos:

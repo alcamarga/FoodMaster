@@ -1,138 +1,142 @@
-// Inventario de Insumos — Admin Dashboard
-// Autor: Camilo Martinez | Fecha: 01/05/2026
-
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { InsumosService, Insumo, InsumoPayload } from '../../../services/insumos';
+import { HttpClient } from '@angular/common/http';
+
+// --- INTERFACES CORREGIDAS ---
+interface Insumo {
+  id: number;
+  nombre: string;
+  cantidad: number;
+  unidad: string;
+  precio: number;
+  stock_minimo: number;
+}
+
+interface InsumoPayload {
+  nombre: string;
+  cantidad: number;
+  unidad: string;
+  precio: number;
+  stock_minimo: number;
+}
 
 @Component({
   selector: 'app-inventario',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './inventario.html',
-  styleUrl: './inventario.css',
+  styleUrls: ['./inventario.css'] // <-- Cambiado de .scss a .css
 })
 export class InventarioComponent implements OnInit {
   insumos = signal<Insumo[]>([]);
-  cargando = signal(false);
+  cargando = signal<boolean>(false);
   mensajeExito = signal<string | null>(null);
   mensajeError = signal<string | null>(null);
 
-  // --- Edición inline ---
-  editandoId: number | null = null;
-  edicion: Partial<InsumoPayload> = {};
-
-  // --- Formulario nuevo insumo ---
   mostrarFormulario = false;
-  nuevoInsumo: InsumoPayload = this.insumoVacio();
+  editandoId: number | null = null;
 
-  unidades = ['gr', 'ml', 'kg', 'lt', 'uds'];
+  // Opciones para el select de unidades
+  unidades = ['gr', 'ml', 'und', 'oz', 'lb', 'kg'];
 
-  constructor(private insumosService: InsumosService) {}
+  nuevoInsumo: InsumoPayload = {
+    nombre: '',
+    cantidad: 0,
+    unidad: 'gr',
+    precio: 0,
+    stock_minimo: 0
+  };
 
-  ngOnInit(): void {
-    this.obtenerInsumos();
+  edicion: any = {};
+
+  private apiUrl = 'http://localhost:5000/api/insumos';
+
+  constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.cargarInsumos();
   }
 
-  obtenerInsumos(): void {
+  cargarInsumos() {
     this.cargando.set(true);
-    this.insumosService.getInsumos().subscribe({
+    this.http.get<Insumo[]>(this.apiUrl).subscribe({
       next: (data) => {
         this.insumos.set(data);
         this.cargando.set(false);
       },
-      error: (err) => {
-        this.mostrarError('Error al cargar insumos: ' + (err.error?.error || err.message));
+      error: () => {
+        this.mensajeError.set('Error al conectar con el servidor');
         this.cargando.set(false);
       }
     });
   }
 
-  // --- Edición inline ---
-
-  iniciarEdicion(insumo: Insumo): void {
-    this.editandoId = insumo.id;
-    this.edicion = {
-      cantidad: insumo.cantidad,
-      precio_unidad: insumo.precio_unidad,
-      stock_minimo: insumo.stock_minimo ?? 0,
-    };
+  toggleFormulario() {
+    this.mostrarFormulario = !this.mostrarFormulario;
   }
 
-  guardarEdicion(id: number): void {
-    this.insumosService.updateInsumo(id, this.edicion).subscribe({
-      next: (actualizado) => {
-        this.insumos.update(lista =>
-          lista.map(i => i.id === id ? { ...i, ...actualizado } : i)
-        );
-        this.editandoId = null;
-        this.mostrarExito('✅ Insumo actualizado');
+  agregarInsumo() {
+    if (!this.nuevoInsumo.nombre) {
+      this.mensajeError.set('El nombre es obligatorio');
+      return;
+    }
+
+    this.http.post<Insumo>(this.apiUrl, this.nuevoInsumo).subscribe({
+      next: (insumo) => {
+        this.insumos.set([...this.insumos(), insumo]);
+        this.resetFormulario();
+        this.mensajeExito.set('Insumo agregado correctamente');
+        this.mostrarFormulario = false;
       },
-      error: (err) => this.mostrarError('❌ ' + (err.error?.error || 'Error al guardar'))
+      error: (err) => this.mensajeError.set('Error al guardar el insumo')
     });
   }
 
-  cancelarEdicion(): void {
+  iniciarEdicion(insumo: Insumo) {
+    this.editandoId = insumo.id;
+    this.edicion = { ...insumo };
+  }
+
+  cancelarEdicion() {
     this.editandoId = null;
     this.edicion = {};
   }
 
-  // --- Nuevo insumo ---
-
-  toggleFormulario(): void {
-    this.mostrarFormulario = !this.mostrarFormulario;
-    if (!this.mostrarFormulario) this.nuevoInsumo = this.insumoVacio();
-  }
-
-  agregarInsumo(): void {
-    if (!this.nuevoInsumo.nombre.trim()) {
-      this.mostrarError('El nombre es obligatorio');
-      return;
-    }
-    this.insumosService.createInsumo(this.nuevoInsumo).subscribe({
-      next: (creado) => {
-        this.insumos.update(lista => [...lista, creado]);
-        this.nuevoInsumo = this.insumoVacio();
-        this.mostrarFormulario = false;
-        this.mostrarExito('✅ Insumo registrado');
-      },
-      error: (err) => this.mostrarError('❌ ' + (err.error?.error || 'Error al crear'))
-    });
-  }
-
-  // --- Eliminar ---
-
-  eliminarInsumo(id: number): void {
-    if (!confirm('¿Eliminar este insumo permanentemente?')) return;
-    this.insumosService.deleteInsumo(id).subscribe({
+  guardarEdicion(id: number) {
+    this.http.put(`${this.apiUrl}/${id}`, this.edicion).subscribe({
       next: () => {
-        this.insumos.update(lista => lista.filter(i => i.id !== id));
-        this.mostrarExito('🗑️ Insumo eliminado');
+        const actualizados = this.insumos().map(i => i.id === id ? { ...this.edicion } : i);
+        this.insumos.set(actualizados);
+        this.cancelarEdicion();
+        this.mensajeExito.set('Insumo actualizado');
       },
-      error: (err) => this.mostrarError('❌ ' + (err.error?.error || 'Error al eliminar'))
+      error: () => this.mensajeError.set('No se pudo actualizar')
     });
   }
 
-  // --- Helpers ---
-
-  estadoStock(insumo: Insumo): 'bajo' | 'optimo' {
-    return insumo.cantidad < (insumo.stock_minimo ?? 0) ? 'bajo' : 'optimo';
+  eliminarInsumo(id: number) {
+    if (confirm('¿Estás seguro de eliminar este insumo?')) {
+      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+        next: () => {
+          this.insumos.set(this.insumos().filter(i => i.id !== id));
+          this.mensajeExito.set('Insumo eliminado');
+        }
+      });
+    }
   }
 
-  private insumoVacio(): InsumoPayload {
-    return { nombre: '', cantidad: 0, precio_unidad: 0, unidad_medida: 'gr', stock_minimo: 0 };
+  estadoStock(insumo: Insumo): string {
+    return insumo.cantidad <= insumo.stock_minimo ? 'bajo' : 'ok';
   }
 
-  private mostrarExito(msg: string): void {
-    this.mensajeExito.set(msg);
-    this.mensajeError.set(null);
-    setTimeout(() => this.mensajeExito.set(null), 3500);
-  }
-
-  private mostrarError(msg: string): void {
-    this.mensajeError.set(msg);
-    this.mensajeExito.set(null);
-    setTimeout(() => this.mensajeError.set(null), 5000);
+  private resetFormulario() {
+    this.nuevoInsumo = {
+      nombre: '',
+      cantidad: 0,
+      unidad: 'gr',
+      precio: 0,
+      stock_minimo: 0
+    };
   }
 }
