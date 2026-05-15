@@ -92,8 +92,22 @@ const projectMemory = [
       "Optimización de la trazabilidad de insumos por tamaño de producto."
     ],
     "estado": "FINALIZADO"
+  },
+  {
+    "fecha": "2026-05-15",
+    "modulo": "Arquitectura & DevOps (Docker + Nginx)",
+    "tarea": "Contenerización Completa Multi-Contenedor",
+    "descripcion": "Integración de todo el ecosistema PizzaOS en Docker, incluyendo el Frontend de Angular servido por Nginx como Proxy Inverso.",
+    "logros": [
+      "Dockerfile multi-etapa para optimizar el tamaño de la imagen de Angular.",
+      "Configuración de Nginx para servir estáticos y redirigir peticiones API al backend.",
+      "Orquestación de tres servicios (Frontend, Backend, DB) mediante Docker Compose.",
+      "Soberanía tecnológica total: el sistema es desplegable en cualquier nube con soporte Docker (Azure/AWS)."
+    ],
+    "estado": "COMPLETADO"
   }
 ];
+
 
 
 export default projectMemory;

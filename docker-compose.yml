@@ -1,8 +1,19 @@
 version: '3.8'
 
 services:
-  # Tu aplicación de pizzería
+  # Frontend en Angular con Nginx
+  frontend_pizzeria:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - app_pizzeria
+    restart: always
+
+  # Backend en Flask
   app_pizzeria:
+
     build: .
     ports:
       - "5000:5000"
