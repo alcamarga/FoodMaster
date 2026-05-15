@@ -5,9 +5,12 @@ services:
   app_pizzeria:
     build: .
     ports:
-      - "8000:8000"
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://camilo_admin:pizzapassword@db_pizzeria:5432/pizzeria_db
     depends_on:
       - db_pizzeria
+
 
   # La base de datos (como la que ya probamos)
   db_pizzeria:
@@ -16,3 +19,8 @@ services:
       POSTGRES_USER: camilo_admin
       POSTGRES_PASSWORD: pizzapassword
       POSTGRES_DB: pizzeria_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

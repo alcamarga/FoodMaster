@@ -5,11 +5,11 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # 3. Copiamos los archivos de requerimientos e instalamos librerías
-COPY requirements.txt .
+COPY backend/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 4. Copiamos todo el código de tu pizzería a la carpeta /app
 COPY . .
 
 # 5. El comando para arrancar tu sistema
-CMD ["python", "app.py"]
+CMD ["python", "backend/app.py"]
