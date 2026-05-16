@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 // --- INTERFACES CORREGIDAS ---
 interface Insumo {
@@ -50,7 +51,7 @@ export class InventarioComponent implements OnInit {
 
   edicion: any = {};
 
-  private apiUrl = 'http://localhost:5000/api/insumos';
+  private apiUrl = `${environment.apiUrl}/insumos`;
 
   constructor(private http: HttpClient) { }
 

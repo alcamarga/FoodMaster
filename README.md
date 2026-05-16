@@ -49,3 +49,10 @@ El sistema ahora incluye un motor de descuentos automáticos vinculado al estado
 - **Sistema Anti-Errores:** El backend valida la integridad de los datos mediante ID y fallback por nombre, asegurando que el stock siempre sea preciso.
 - **Control de Ruptura de Stock:** Validación automática que impide la entrega si no hay existencias suficientes.
 - **Actualización de precios y análisis de rentabilidad:** Se cargaron precios reales de insumos; el Análisis de Rentabilidad solo considera 'Precio 1' (pizza pequeña), dejando a la Pizza Marinara con margen crítico del 27.3%. Pendiente: desglose por tamaños de pizza.
+## ☁️ Despliegue en la Nube (Producción)
+PizzaOS utiliza una arquitectura multi-contenedor desacoplada en **Microsoft Azure** para garantizar escalabilidad y rendimiento:
+
+- **Frontend (Angular)**: Desplegado en [Azure Web App (pizzaos-web)](https://pizzaos-web-hxd3bbddgwcugnd2.canadaeast-01.azurewebsites.net). Se conecta directamente a la API en la nube para optimizar la latencia y evitar bucles de proxy interno (hairpinning).
+- **Backend (Flask)**: Ejecutándose en [Azure Web App (pizzaos-api)](https://pizzaos-api-hxd3bbddgwcugnd2.canadaeast-01.azurewebsites.net). Implementa CORS dinámico y robustez en la gestión de peticiones JSON.
+- **Base de Datos**: [Azure Database for PostgreSQL (Flexible Server)](https://portal.azure.com) en la región Canada Central, asegurando persistencia de datos gestionada.
+- **Registro de Imágenes**: Azure Container Registry (ACR) privado para la gestión de versiones del sistema.

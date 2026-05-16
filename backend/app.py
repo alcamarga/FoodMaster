@@ -1,9 +1,10 @@
-from flask import Flask
+import os
+from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
 from models.database import db
 
-# 1. IMPORTAR MODELOS (Fundamental para que db.create_all() los vea)
+# 1. IMPORTAR MODELOS
 from models.usuario import Usuario
 from models.insumo import Insumo
 from models.producto import Producto
@@ -17,10 +18,10 @@ from routes.auth_routes import auth_bp
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Configuración de CORS maestra
+# Configuración de CORS temporalmente abierta para validación en Azure
 CORS(app, resources={r"/api/*": {
-    "origins": ["http://localhost:4200"],
-    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], # Asegúrate que PUT esté aquí
+    "origins": "*",
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
     "expose_headers": ["Content-Type", "Authorization"]
 }}, supports_credentials=True)
@@ -35,6 +36,37 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 @app.route('/')
 def index():
     return "<h1>¡PizzaOS con Postgres Funcionando!</h1><p>Sistema Modular Activo</p>"
+
+@app.route('/api/seed', methods=['GET'])
+def trigger_seed():
+    try:
+        from werkzeug.security import generate_password_hash
+        print("🚀 Iniciando Seed desde endpoint...")
+        
+        # 1. Crear tablas si no existen
+        db.create_all()
+        
+        # 2. Crear Admin si no existe
+        admin_email = 'admin@pizzeria.com'
+        if not Usuario.query.filter_by(email=admin_email).first():
+            admin = Usuario(
+                nombre='Admin Azure',
+                email=admin_email,
+                contrasena_hash=generate_password_hash('admin123'),
+                rol='admin'
+            )
+            db.session.add(admin)
+            
+        # 3. Productos básicos para prueba
+        if not Producto.query.filter_by(nombre='Pizza Tradicional').first():
+            p1 = Producto(nombre='Pizza Tradicional', descripcion='Clásica Azure', categoria='Pizza', precio_base=20000, precio_pequena=20000)
+            db.session.add(p1)
+            
+        db.session.commit()
+        return jsonify({"status": "success", "message": "¡Base de datos de Azure inicializada con éxito!"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':
     with app.app_context():

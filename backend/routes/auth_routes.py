@@ -16,9 +16,13 @@ def login():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
-    datos = request.get_json()
+    # Robustez total: Intentamos JSON forzado, luego Formulario
+    datos = request.get_json(force=True, silent=True)
     if not datos:
-        return jsonify({'error': 'No se enviaron datos'}), 400
+        datos = request.form.to_dict()
+
+    if not datos:
+        return jsonify({'error': 'No se enviaron datos válidos en la petición'}), 400
 
     # Intentamos obtener el email de varias formas comunes
     email = str(datos.get('email') or datos.get('username') or '').strip().lower()
@@ -26,11 +30,14 @@ def login():
     # Intentamos obtener la contraseña buscando nombres comunes que usa Angular
     password = datos.get('password') or datos.get('contrasena') or datos.get('password_usuario')
 
-    # Imprimimos en la terminal para que TÚ veas qué está llegando realmente
-    print(f"DEBUG: Intentando login para: {email} | Password recibida: {'***' if password else 'VACÍA'}")
+    # Debug logs para el usuario (se verán en az webapp log tail)
+    print(f"DEBUG LOGIN: email='{email}' | password_present={bool(password)}")
 
     if not email or not password:
-        return jsonify({'error': 'Email y contraseña son obligatorios'}), 400
+        return jsonify({
+            'error': 'Email y contraseña son obligatorios',
+            'debug': f'email_recibido: {bool(email)}, password_recibida: {bool(password)}'
+        }), 400
 
     usuario = Usuario.query.filter_by(email=email).first()
 

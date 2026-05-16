@@ -105,6 +105,30 @@ const projectMemory = [
       "Soberanía tecnológica total: el sistema es desplegable en cualquier nube con soporte Docker (Azure/AWS)."
     ],
     "estado": "COMPLETADO"
+  },
+  {
+    "fecha": "2026-05-16",
+    "modulo": "Infraestructura & DevOps (Azure Cloud)",
+    "tarea": "Inicio de Despliegue en la Nube (Azure)",
+    "descripcion": "Lanzamiento oficial de la fase de despliegue productivo en Microsoft Azure utilizando un modelo PaaS.",
+    "detalles_arquitectura": [
+      "Azure Resource Group: rg-pizzaos (Contenedor lógico de recursos)",
+      "Azure Container Registry (ACR): Almacenamiento privado de imágenes Docker (Frontend/Backend)",
+      "Azure Web App for Containers: Hosting escalable para microservicios",
+      "Azure Database for PostgreSQL: Base de datos gestionada para persistencia de datos"
+    ],
+    "estado": "COMPLETADO",
+    "logros": [
+      "Creación exitosa de Resource Group: rg-pizzaos.",
+      "Despliegue de Azure Container Registry: acrpizzaos (SKU Basic).",
+      "Login exitoso en Azure Container Registry (docker login).",
+      "Etiquetado (tagging) y subida (push) del 100% de las imágenes (backend/frontend) a Azure.",
+      "Despliegue de Azure Database for PostgreSQL (Flexible Server) en Canada Central.",
+      "Migración exitosa de esquema y datos (seed.py y endpoint /api/seed) hacia la base de datos en la nube.",
+      "Despliegue exitoso de la arquitectura de producción en Azure Cloud (Canada East/Central) el 16 de Mayo de 2026.",
+      "Solución de errores críticos: Hairpinning loop (Nginx timeout), robustez en login (force=True), apertura controlada de CORS y corrección de URLs locales (línea 53 de inventario.ts)."
+    ],
+    "notas_proxima_sesion": "Mantenimiento preventivo, monitoreo de logs en Azure y cierre de seguridad de CORS (restringir a dominio específico)."
   }
 ];
 

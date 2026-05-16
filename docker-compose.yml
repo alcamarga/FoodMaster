@@ -18,7 +18,8 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DATABASE_URL=postgresql://camilo_admin:pizzapassword@db_pizzeria:5432/pizzeria_db
+      environment:
+      - DATABASE_URL=postgresql://pizzaadmin:Java**2025@pizzaos-db.postgres.database.azure.com:5432/postgres?sslmode=require
     depends_on:
       - db_pizzeria
 
