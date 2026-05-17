@@ -50,4 +50,3 @@ jobs:
       with:
         app-name: pizzaos-web
         images: 'acrpizzaos.azurecr.io/frontend:latest'
-EOF
