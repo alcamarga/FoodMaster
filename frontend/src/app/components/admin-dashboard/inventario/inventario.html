@@ -115,7 +115,7 @@
               class="form-control form-control-sm bg-dark text-white border-warning text-center"
               style="width: 80px; display: inline-block;" [(ngModel)]="edicion.stock_minimo">
             } @else {
-            <span class="text-white-50">{{ insumo.stock_minimo ?? 0 }}</span>
+            <span class="text-white-50">{{ insumo.stock_minimo || 0 }}</span>
             }
           </td>
 

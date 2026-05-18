@@ -4,10 +4,13 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface ItemPedido {
-  nombre: string;
-  tamano: string;
-  cantidad: number;
-  precio: number;
+  nombre?: string;
+  producto_nombre?: string;
+  tamano?: string;
+  cantidad?: number;
+  precio?: number;
+  precio_unitario?: number;
+  [key: string]: any;
 }
 
 export interface Pedido {

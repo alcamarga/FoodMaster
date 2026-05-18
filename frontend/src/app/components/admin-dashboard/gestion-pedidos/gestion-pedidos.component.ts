@@ -69,13 +69,14 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
     });
   }
 
-  cambiarEstado(pedidoId: number, nuevoEstado: string): void {
-    this.orderService.actualizarEstado(pedidoId, nuevoEstado).pipe(
+  cambiarEstado(pedido: Pedido, nuevoEstado: string): void {
+    this.orderService.actualizarEstado(pedido.id, nuevoEstado).pipe(
       catchError(err => {
         this.lanzarToast('❌ Error al actualizar el estado');
         return throwError(() => err);
       })
     ).subscribe(() => {
+      pedido.estado = nuevoEstado;
       this.lanzarToast(`✅ Estado actualizado: ${nuevoEstado}`);
     });
   }

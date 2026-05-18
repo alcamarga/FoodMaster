@@ -59,14 +59,12 @@
                   <td>{{ pedido.direccion }}</td>
                   <td>{{ pedido.total | currency }}</td>
                   <td>
-                    <span class="badge" [ngClass]="{
-                                        'bg-warning': pedido.estado === 'Pendiente',
-                                        'bg-info': pedido.estado === 'Preparando',
-                                        'bg-success': pedido.estado === 'Enviado'
-                                    }">{{ pedido.estado }}</span>
+                    <span [class]="'status-badge ' + (pedido.estado ? pedido.estado.toLowerCase() : 'pendiente')">
+                      {{ pedido.estado || 'Pendiente' }}
+                    </span>
                   </td>
                   <td>
-                    <button class="btn btn-outline-secondary btn-sm">Ver Detalle</button>
+                    <button class="btn btn-outline-secondary btn-sm" (click)="verDetalle(pedido)">Ver Detalle</button>
                   </td>
                 </tr>
               </tbody>
@@ -153,6 +151,72 @@
     <div *ngIf="pestanaActiva === 'rentabilidad' && usuario?.rol === 'admin'">
       <!-- Módulo de análisis de rentabilidad por producto -->
       <app-rentabilidad></app-rentabilidad>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE DETALLE DE PEDIDO (Clonado de Gestión Pedidos) -->
+<div class="modal-overlay" *ngIf="mostrarDetalle" (click)="cerrarDetalle()">
+  <div class="modal-detalle" (click)="$event.stopPropagation()">
+
+    <div class="modal-detalle-header">
+      <h3>🧾 Detalle — Orden #{{ pedidoDetalle?.id }}</h3>
+      <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+    </div>
+
+    <div class="modal-detalle-body" *ngIf="pedidoDetalle">
+
+      <div class="detalle-meta">
+        <span>📅 {{ pedidoDetalle.fecha_hora || pedidoDetalle.fecha || '—' }}</span>
+        <span>👤 {{ pedidoDetalle.cliente_nombre || pedidoDetalle.cliente || ('User #' + pedidoDetalle.cliente_id) }}</span>
+        <span class="badge-estado">{{ pedidoDetalle.estado || 'Pendiente' }}</span>
+      </div>
+
+      <table class="detalle-table" *ngIf="pedidoDetalle.articulos && pedidoDetalle.articulos.length > 0">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th class="text-center">Tamaño</th>
+            <th class="text-center">Cant.</th>
+            <th class="text-end">P. Unit.</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let art of pedidoDetalle.articulos">
+            <td class="fw-bold">{{ art.nombre || art.producto_nombre || 'Artículo' }}</td>
+            <td class="text-center text-white-50">{{ art.tamano || 'N/A' }}</td>
+            <td class="text-center">{{ art.cantidad || 1 }}</td>
+            <td class="text-end text-white-50">${{ (art.precio || art.precio_unitario || 0) | number:'1.0-0' }}</td>
+            <td class="text-end text-warning fw-bold">${{ ((art.precio || art.precio_unitario || 0) * (art.cantidad || 1)) | number:'1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="!pedidoDetalle.articulos || pedidoDetalle.articulos.length === 0"
+           class="text-center text-muted py-3">
+        <span>Sin detalle de productos disponible.</span>
+      </div>
+
+      <div class="detalle-totales">
+        <div class="detalle-fila">
+          <span>Subtotal</span>
+          <span>${{ subtotalPedido(pedidoDetalle) | number:'1.0-0' }}</span>
+        </div>
+        <div class="detalle-fila text-muted small">
+          <span>IVA (19%)</span>
+          <span>${{ ivaPedido(pedidoDetalle) | number:'1.0-0' }}</span>
+        </div>
+        <div class="detalle-fila total-final">
+          <span>TOTAL</span>
+          <span>${{ (pedidoDetalle.total || 0) | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-detalle-footer">
+      <button class="btn btn-outline-light" (click)="cerrarDetalle()">Cerrar</button>
     </div>
   </div>
 </div>

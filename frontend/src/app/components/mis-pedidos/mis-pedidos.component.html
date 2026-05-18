@@ -12,7 +12,7 @@
     </div>
 
     <!-- Sin pedidos -->
-    <div *ngIf="!cargando && pedidos.length === 0" class="empty-state">
+    <div *ngIf="!cargando && pedidos && pedidos.length === 0" class="empty-state">
       <div style="font-size: 4rem;">🍕</div>
       <h3>Aún no tienes pedidos</h3>
       <p>¿Qué tal si pides algo delicioso ahora?</p>
@@ -20,7 +20,7 @@
     </div>
 
     <!-- Lista de pedidos -->
-    <div *ngIf="!cargando && pedidos.length > 0" class="pedidos-list">
+    <div *ngIf="!cargando && pedidos && pedidos.length > 0" class="pedidos-list">
       <div *ngFor="let pedido of pedidos" class="pedido-card">
 
         <!-- Encabezado de la tarjeta -->

@@ -32,11 +32,20 @@
           <td class="text-end text-white-50 small">${{ ivaPedido(p) | number:'1.0-0' }}</td>
           <td class="text-end price fw-bold">${{ p.total | number:'1.0-0' }}</td>
           <td>
-            <select
-              [(ngModel)]="p.estado"
-              (change)="cambiarEstado(p.id, p.estado || 'Pendiente')"
-              [class]="'status-select ' + (p.estado ? p.estado.toLowerCase() : 'pendiente')">
-              <option *ngFor="let st of estadosDisponibles" [value]="st">{{ st }}</option>
+            <select class="form-select form-select-sm font-weight-bold"
+                    [value]="(p.estado || 'PENDIENTE') | uppercase"
+                    (change)="cambiarEstado(p, $any($event.target).value)"
+                    [ngClass]="{
+                      'bg-warning text-dark': !p.estado || p.estado === 'Pendiente' || p.estado === 'PENDIENTE' || p.estado === 'pendiente',
+                      'bg-info text-white': p.estado === 'Preparando' || p.estado === 'PREPARANDO' || p.estado === 'preparando',
+                      'bg-success text-white': p.estado === 'Entregado' || p.estado === 'ENTREGADO' || p.estado === 'entregado',
+                      'bg-danger text-white': p.estado === 'Cancelado' || p.estado === 'CANCELADO' || p.estado === 'cancelado'
+                    }"
+                    style="font-size: 0.85rem; padding: 6px 10px; border: none; border-radius: 4px; width: 100%; cursor: pointer;">
+              <option value="PENDIENTE" class="bg-dark text-white">PENDIENTE</option>
+              <option value="PREPARANDO" class="bg-dark text-white">PREPARANDO</option>
+              <option value="ENTREGADO" class="bg-dark text-white">ENTREGADO</option>
+              <option value="CANCELADO" class="bg-dark text-white">CANCELADO</option>
             </select>
           </td>
           <td class="text-center">
@@ -89,11 +98,11 @@
         </thead>
         <tbody>
           <tr *ngFor="let art of pedidoDetalle.articulos">
-            <td class="fw-bold">{{ art.nombre }}</td>
+            <td class="fw-bold">{{ art.nombre || art.producto_nombre || 'Artículo' }}</td>
             <td class="text-center text-white-50">{{ art.tamano || 'N/A' }}</td>
-            <td class="text-center">{{ art.cantidad }}</td>
-            <td class="text-end text-white-50">${{ art.precio | number:'1.0-0' }}</td>
-            <td class="text-end text-warning fw-bold">${{ (art.precio * art.cantidad) | number:'1.0-0' }}</td>
+            <td class="text-center">{{ art.cantidad || 1 }}</td>
+            <td class="text-end text-white-50">${{ (art.precio || art.precio_unitario || 0) | number:'1.0-0' }}</td>
+            <td class="text-end text-warning fw-bold">${{ ((art.precio || art.precio_unitario || 0) * (art.cantidad || 1)) | number:'1.0-0' }}</td>
           </tr>
         </tbody>
       </table>

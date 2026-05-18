@@ -11,11 +11,19 @@ class Pedido(db.Model):
     articulos_json = db.Column(db.Text, nullable=True)  # Guardamos los productos como JSON
 
     def serializar(self):
+        import json
+        articulos_lista = []
+        if self.articulos_json:
+            try:
+                articulos_lista = json.loads(self.articulos_json)
+            except:
+                pass
+
         return {
             "id": self.id,
             "cliente_id": self.cliente_id,
             "fecha": self.fecha.isoformat(),
             "total": float(self.total),
             "estado": self.estado,
-            "articulos": self.articulos_json
+            "articulos": articulos_lista
         }

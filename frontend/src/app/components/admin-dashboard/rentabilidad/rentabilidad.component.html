@@ -46,9 +46,9 @@
             <div class="summary-icon">🏆</div>
             <div class="summary-body">
               <div class="summary-label">Más Rentable</div>
-              <div class="summary-value">{{ resumen()!.mas_rentable?.nombre ?? '—' }}</div>
+              <div class="summary-value">{{ resumen()!.mas_rentable?.nombre || '—' }}</div>
               <div class="summary-sub text-success fw-bold">
-                {{ resumen()!.mas_rentable?.margen_porcentaje ?? 0 }}% margen
+                {{ resumen()!.mas_rentable?.margen_porcentaje || 0 }}% margen
               </div>
             </div>
           </div>
@@ -60,9 +60,9 @@
             <div class="summary-icon">⚠️</div>
             <div class="summary-body">
               <div class="summary-label">Mayor Costo de Producción</div>
-              <div class="summary-value">{{ resumen()!.mayor_costo?.nombre ?? '—' }}</div>
+              <div class="summary-value">{{ resumen()!.mayor_costo?.nombre || '—' }}</div>
               <div class="summary-sub text-danger fw-bold">
-                ${{ resumen()!.mayor_costo?.costo_produccion ?? 0 | number:'1.0-0' }} / unidad
+                ${{ resumen()!.mayor_costo?.costo_produccion || 0 | number:'1.0-0' }} / unidad
               </div>
             </div>
           </div>

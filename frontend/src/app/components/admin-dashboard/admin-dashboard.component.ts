@@ -42,6 +42,10 @@ export class AdminDashboardComponent implements OnInit {
   // Viendo tu error, el HTML busca 'pestanaActiva'.
   pestanaActiva: string = 'pedidos';
   usuario: Usuario | null = null;
+  
+  // Variables para Modal de Detalle
+  pedidoDetalle: any = null;
+  mostrarDetalle = false;
 
   constructor(
     private auth: AuthService,
@@ -74,5 +78,24 @@ export class AdminDashboardComponent implements OnInit {
         console.error('Error conectando con el backend de PizzaOS:', err);
       }
     });
+  }
+
+  // --- MÉTODOS PARA EL MODAL DE DETALLE ---
+  verDetalle(pedido: any): void {
+    this.pedidoDetalle = pedido;
+    this.mostrarDetalle = true;
+  }
+
+  cerrarDetalle(): void {
+    this.mostrarDetalle = false;
+    this.pedidoDetalle = null;
+  }
+
+  subtotalPedido(pedido: any): number {
+    return Math.round((pedido.total ?? 0) / 1.19);
+  }
+
+  ivaPedido(pedido: any): number {
+    return Math.round((pedido.total ?? 0) - this.subtotalPedido(pedido));
   }
 }

@@ -21,7 +21,7 @@ app.config.from_object(Config)
 # Configuración de CORS temporalmente abierta para validación en Azure
 CORS(app, resources={r"/api/*": {
     "origins": "*",
-    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
     "expose_headers": ["Content-Type", "Authorization"]
 }}, supports_credentials=True)

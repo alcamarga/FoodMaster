@@ -22,7 +22,7 @@ export class MisPedidosComponent implements OnInit {
   cargarPedidos(): void {
     this.orderService.obtenerPedidos().subscribe({
       next: (res) => {
-        this.pedidos = res.pedidos;
+        this.pedidos = res.pedidos || [];
         this.cargando = false;
       },
       error: (err) => {
