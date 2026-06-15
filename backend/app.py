@@ -9,11 +9,14 @@ from models.usuario import Usuario
 from models.insumo import Insumo
 from models.producto import Producto
 from models.receta import Receta
+from models.mesa import Mesa
+from models.comanda import Comanda
 
 # 2. IMPORTAR RUTAS
 from routes.pedido_routes import pedidos_blueprint
 from routes.admin_routes import admin_bp
 from routes.auth_routes import auth_bp
+from routes.mesa_routes import mesa_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -32,6 +35,7 @@ db.init_app(app)
 app.register_blueprint(pedidos_blueprint, url_prefix='/api')
 app.register_blueprint(admin_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
+app.register_blueprint(mesa_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
