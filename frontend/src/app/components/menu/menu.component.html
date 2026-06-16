@@ -206,7 +206,17 @@
       <div class="row g-4 text-start">
         @for (pizza of pizzas(); track pizza.id) {
           <div class="col-md-6 col-lg-4">
-            <div class="glass-card p-4 h-100 shadow-lg text-white">
+            <div class="glass-card p-4 h-100 shadow-lg text-white d-flex flex-column">
+              <!-- Español: imagen del producto con fallback | English: product image with fallback -->
+              @if (pizza.imagen_url || pizza.imagen) {
+                <div class="product-img-wrapper rounded overflow-hidden mb-3" style="height: 180px; background: rgba(0,0,0,0.3);">
+                  <img [src]="pizza.imagen_url || pizza.imagen" 
+                       [alt]="pizza.nombre"
+                       class="w-100 h-100"
+                       style="object-fit: cover;"
+                       (error)="$event.target.style.display='none'" />
+                </div>
+              }
               <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
                 <h3 class="text-warning fw-bold h4 mb-0">{{ pizza.nombre }}</h3>
                 @if (usuarioActual?.rol === 'admin') {
@@ -219,39 +229,39 @@
 
               <!-- Precio 1 -->
               <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10" *ngIf="pizza.precio_1 !== undefined && pizza.precio_1 !== null">
-                <span class="small">{{ getEtiquetasPrecio(pizza.categoria || 'Pizza')[0] }}: <b class="text-warning">${{ pizza.precio_1 | number }}</b></span>
+                <span class="small">{{ getLabelPrecio(pizza, 0) }}: <b class="text-warning">${{ pizza.precio_1 | number }}</b></span>
                 @if (usuarioActual?.rol !== 'admin') {
                   <button class="btn btn-sm transition-all" 
-                          [class.btn-warning]="!agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[0]]"
-                          [class.btn-success]="agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[0]]"
-                          (click)="agregarAlCarrito(pizza, getEtiquetasPrecio(pizza.categoria || 'Pizza')[0], pizza.precio_1 || 0)">
-                    {{ agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[0]] ? '✅ ¡Agregado!' : '🛒 Comprar' }}
+                          [class.btn-warning]="!agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 0)]"
+                          [class.btn-success]="agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 0)]"
+                          (click)="agregarAlCarrito(pizza, getLabelPrecio(pizza, 0), pizza.precio_1 || 0)">
+                    {{ agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 0)] ? '✅ ¡Agregado!' : '🛒 Comprar' }}
                   </button>
                 }
               </div>
 
               <!-- Precio 2 -->
               <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10" *ngIf="pizza.precio_2">
-                <span class="small">{{ getEtiquetasPrecio(pizza.categoria || 'Pizza')[1] }}: <b class="text-warning">${{ pizza.precio_2 | number }}</b></span>
+                <span class="small">{{ getLabelPrecio(pizza, 1) }}: <b class="text-warning">${{ pizza.precio_2 | number }}</b></span>
                 @if (usuarioActual?.rol !== 'admin') {
                   <button class="btn btn-sm transition-all" 
-                          [class.btn-warning]="!agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[1]]"
-                          [class.btn-success]="agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[1]]"
-                          (click)="agregarAlCarrito(pizza, getEtiquetasPrecio(pizza.categoria || 'Pizza')[1], pizza.precio_2)">
-                    {{ agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[1]] ? '✅ ¡Agregado!' : '🛒 Comprar' }}
+                          [class.btn-warning]="!agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 1)]"
+                          [class.btn-success]="agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 1)]"
+                          (click)="agregarAlCarrito(pizza, getLabelPrecio(pizza, 1), pizza.precio_2)">
+                    {{ agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 1)] ? '✅ ¡Agregado!' : '🛒 Comprar' }}
                   </button>
                 }
               </div>
 
               <!-- Precio 3 -->
               <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded bg-white bg-opacity-10 border border-white border-opacity-10" *ngIf="pizza.precio_3">
-                <span class="small">{{ getEtiquetasPrecio(pizza.categoria || 'Pizza')[2] }}: <b class="text-warning">${{ pizza.precio_3 | number }}</b></span>
+                <span class="small">{{ getLabelPrecio(pizza, 2) }}: <b class="text-warning">${{ pizza.precio_3 | number }}</b></span>
                 @if (usuarioActual?.rol !== 'admin') {
                   <button class="btn btn-sm transition-all" 
-                          [class.btn-warning]="!agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[2]]"
-                          [class.btn-success]="agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[2]]"
-                          (click)="agregarAlCarrito(pizza, getEtiquetasPrecio(pizza.categoria || 'Pizza')[2], pizza.precio_3)">
-                    {{ agregandoState()[pizza.id + '-' + getEtiquetasPrecio(pizza.categoria || 'Pizza')[2]] ? '✅ ¡Agregado!' : '🛒 Comprar' }}
+                          [class.btn-warning]="!agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 2)]"
+                          [class.btn-success]="agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 2)]"
+                          (click)="agregarAlCarrito(pizza, getLabelPrecio(pizza, 2), pizza.precio_3)">
+                    {{ agregandoState()[pizza.id + '-' + getLabelPrecio(pizza, 2)] ? '✅ ¡Agregado!' : '🛒 Comprar' }}
                   </button>
                 }
               </div>

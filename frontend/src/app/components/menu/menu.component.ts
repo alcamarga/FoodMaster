@@ -97,6 +97,23 @@ export class MenuComponent implements OnInit {
     return ['Único'];
   }
 
+  // Español: detecta si un producto tiene un solo precio (precio único) | English: detect if a product has a single price
+  esPrecioUnico(pizza: Pizza): boolean {
+    const tienePrecio2 = pizza.precio_2 !== undefined && pizza.precio_2 !== null && pizza.precio_2 > 0;
+    const tienePrecio3 = pizza.precio_3 !== undefined && pizza.precio_3 !== null && pizza.precio_3 > 0;
+    return !tienePrecio2 && !tienePrecio3;
+  }
+
+  // Español: obtener etiqueta de precio considerando precio único (muestra "Plato") | English: get price label considering single price (shows "Plato")
+  getLabelPrecio(pizza: Pizza, index: number): string {
+    const etiquetas = this.getEtiquetasPrecio(pizza.categoria || 'Pizza');
+    // Español: para productos de un solo precio, mostrar "Plato" en el primer slot | English: for single-price products, show "Plato" on the first slot
+    if (index === 0 && this.esPrecioUnico(pizza)) {
+      return 'Plato';
+    }
+    return etiquetas[index] || '';
+  }
+
   cargarMenu(): void {
     this.cargando.set(true);
     this.pizzaService.obtenerCatalogoPizzas().subscribe({
@@ -105,6 +122,12 @@ export class MenuComponent implements OnInit {
         if (pizzas && Array.isArray(pizzas)) {
           // El backend PostgreSQL ya no manda el campo 'activo', así que lo omitimos
           this.pizzas.set(pizzas);
+          // Español: depuración de rutas de imagen | English: debug image paths
+          pizzas.forEach(p => {
+            if (p.imagen_url || p.imagen) {
+              console.log(`[Menu] Imagen para "${p.nombre}":`, p.imagen_url || p.imagen);
+            }
+          });
         } else {
           this.pizzas.set([]); // Si no hay nada, lista vacía
         }
@@ -112,7 +135,7 @@ export class MenuComponent implements OnInit {
       },
       error: (err) => {
         this.cargando.set(false);
-        // ... resto del código de error ...
+        console.error('[Menu] Error al cargar productos:', err);
       }
     });
   }
@@ -290,7 +313,7 @@ export class MenuComponent implements OnInit {
         descripcion: pizza.descripcion,
         categoria: pizza.categoria || this.gruposPosibles[0] || 'General',
         tags: pizza.tags || [],
-        imagen_url: pizza.imagen || '',
+        imagen_url: pizza.imagen_url || pizza.imagen || '',
         precio_1: pizza.precio_1,
         precio_2: pizza.precio_2,
         precio_3: pizza.precio_3

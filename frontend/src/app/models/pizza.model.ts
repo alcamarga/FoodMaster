@@ -10,6 +10,7 @@ export interface Pizza {
   precio_1?: number;
   precio_2?: number;
   precio_3?: number;
-  imagen?: string;
+  imagen?: string;         // Español: alias legacy para imagen_url | English: legacy alias for imagen_url
+  imagen_url?: string;     // Español: URL de la imagen del producto | English: product image URL
   activo?: boolean;
 }

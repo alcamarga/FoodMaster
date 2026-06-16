@@ -1,58 +1,84 @@
-# 🍕 Pizzería App Core
+# 🍽️ FoodMaster — Plataforma de Gestión de Restaurantes Multi-Nicho
 
 ## Descripción
-Pizzería App Core es una plataforma moderna para la gestión de menús, diseñada para proporcionar una experiencia atractiva y eficiente tanto para clientes como para administradores. Con una interfaz intuitiva y un diseño acogedor con temática de pizzería artesanal, esta aplicación es perfecta para cualquier negocio de comida italiana.
+**FoodMaster** es una plataforma moderna y versátil para la gestión integral de restaurantes, diseñada para adaptarse a cualquier tipo de negocio gastronómico: pizzerías, restaurantes de comida rápida, cafeterías, bares, y más. Con una interfaz intuitiva, diseño premium oscuro con acentos esmeralda, y una arquitectura escalable, FoodMaster es la solución definitiva para la administración de menús, pedidos, mesas, inventario y personal.
 
 ## Vista Previa
-La aplicación cuenta con un diseño acogedor y moderno, inspirado en la temática de una pizzería artesanal. El uso de colores cálidos, imágenes atractivas y un fondo con un toque de glassmorphism crea una experiencia visual agradable y profesional.
+La aplicación cuenta con un diseño oscuro premium con glassmorphism, acentos en esmeralda (#10b981) y una experiencia de usuario fluida y profesional. El sistema está optimizado tanto para el uso en cocina (tablets) como para la administración desde escritorio.
 
 ## Arquitectura
-Nuestra pizzería app core utiliza Angular 19 como framework frontend, combinado con Signals para manejar los flujos de trabajo y un Interceptor JWT para proteger las rutas.
+FoodMaster utiliza **Angular 19** como framework frontend, combinado con **Signals** para manejo de estado reactivo y un **Interceptor JWT** para proteger las rutas. El backend es una **API REST en Flask (Python)** que se comunica con **PostgreSQL** (o SQLite en desarrollo) utilizando **SQLAlchemy** como ORM.
+
+### Stack Técnico
+
+| Capa | Tecnología |
+|------|-----------|
+| **Frontend** | Angular 19, Signals, Bootstrap 5, TypeScript |
+| **Backend** | Flask (Python 3.12), SQLAlchemy, JWT |
+| **Base de Datos** | PostgreSQL (producción) / SQLite (desarrollo) |
+| **Proxy** | Nginx (producción), Proxy Angular CLI (desarrollo) |
+| **Contenedores** | Docker, Docker Compose |
+| **Cloud** | Microsoft Azure (Web Apps, PostgreSQL, Container Registry) |
+| **IA Local** | Open WebUI + Ollama (Gemma2, Llama3) |
+
+### Características Principales
+- **🎨 Diseño Premium**: Tema oscuro con glassmorphism, acentos esmeralda, y animaciones sutiles.
+- **🔐 RBAC Profesional**: Control de acceso basado en roles (Admin, Cocinero, Domiciliario, Mesero) con interfaces adaptativas.
+- **🪑 Gestión de Mesas**: Sistema de mesas con comandas estilo "DiscOS" — apertura, cierre, agregado de productos en tiempo real.
+- **📦 Inventario Inteligente**: Control detallado de insumos con descuento automático de stock (gr, ml, unidades) al entregar pedidos.
+- **📋 Recetas y Rentabilidad**: Recetas técnicas por producto con análisis de margen por tamaño y costo de producción.
+- **👥 Gestión de Personal**: Panel administrativo con CRUD completo de empleados y asignación de roles.
+- **📱 Responsive**: Diseñado para funcionar en tablets de cocina, dispositivos móviles y escritorio.
+- **🔒 Seguridad**: JWT, CORS dinámico, sanitización de inputs, y logging seguro sin datos sensibles.
+- **🧠 IA Local (Self-Hosted)**: Integración con Open WebUI + Ollama para auditoría técnica y revisión de código con privacidad total.
+
+### Estado Actual
+🚀 **Arquitectura Multi-Contenedor Completa**. FoodMaster es un ecosistema 100% portable y autónomo con frontend (Angular/Nginx), backend (Flask) y base de datos (PostgreSQL) orquestados profesionalmente.
+
+## Instalación y Desarrollo Local
+
+### Prerrequisitos
+- Python 3.10+
+- Node.js 18+
+- Docker (opcional, para producción local)
 
 ### Backend
-La parte backend es una API en Flask que se comunica con una base de datos SQLite utilizando SQLAlchemy. También incluye protección de rutas para asegurar la seguridad de los datos.
-
-### Instalación
-Para levantar el entorno y correr app.py, sigue estos pasos:
-
-1️⃣ Crea un entorno virtual (venv) con Python.
-2️⃣ Instala las dependencias necesarias con pip: `pip install -r requirements.txt`.
-3️⃣ Corre app.py con Flask: `flask run`.
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python3 seed.py    # Poblar base de datos con datos de ejemplo
+python3 app.py     # Iniciar servidor Flask en :5000
+```
 
 ### Frontend
-1️⃣ Instala Node.js y npm.
-2️⃣ Ejecuta el comando `npm install` en la carpeta del proyecto para instalar todas las dependencias.
-3️⃣ Ejecuta el comando `ng serve` para iniciar el servidor de desarrollo de Angular.
+```bash
+cd frontend
+npm install
+ng serve --host 0.0.0.0   # Iniciar en :4200 con proxy a Flask
+```
 
-## Sección de Features
-- **Diseño Glassmorphism**: Nuestro diseño utiliza una combinación de gradientes y sombras para crear un efecto visual atractivo.
-- **Uso de Signals**: Utilizamos Signals para manejar el estado del proyecto y mantener la información sincronizada entre los diferentes componentes.
-- **Seguimiento de Pedidos**: Sistema integral para que los clientes sigan sus pedidos y los administradores gestionen los estados en tiempo real.
-- **Gestión de Recetas e Inventario**: Control detallado de insumos por producto con descuento automático de stock (en gr, ml y unidades) al iniciar la preparación.
-- **RBAC Profesional**: Control de acceso basado en roles (Admin, Cocinero, Domiciliario) con interfaces adaptativas y seguridad en el backend.
-- **Gestión de Personal Administrativa**: Panel dedicado para que el administrador gestione a su equipo con un CRUD completo (Crear, Editar, Eliminar) y asignación de roles.
+### Producción (Docker)
+```bash
+docker-compose up --build
+```
 
-## Seguridad e Inteligencia Artificial Local (Self-Hosted)
-A partir de mayo de 2026, el proyecto integra una infraestructura de IA local para auditoría técnica y revisión de código, priorizando la privacidad de los datos y la soberanía tecnológica.
+## ☁️ Despliegue en la Nube
+FoodMaster utiliza una arquitectura multi-contenedor desacoplada en **Microsoft Azure**:
+
+- **Frontend (Angular)**: Azure Web App con Nginx — sirve la SPA compilada y conecta directamente con la API.
+- **Backend (Flask)**: Azure Web App con CORS dinámico y manejo robusto de peticiones JSON.
+- **Base de Datos**: Azure Database for PostgreSQL (Flexible Server) para persistencia gestionada.
+- **Registro de Imágenes**: Azure Container Registry (ACR) privado para versionamiento de contenedores.
+
+## Seguridad e Inteligencia Artificial Local
+El proyecto integra una infraestructura de IA local auto-gestionada para auditoría técnica, priorizando la privacidad de datos y soberanía tecnológica:
 
 - **Stack**: Open WebUI desplegado en Docker (WSL2/SSD) conectado a **Ollama**.
 - **Modelos**: Gemma2 y Llama3 para análisis de lógica de negocio y seguridad.
-- **Caso de Uso Actual**: Auditoría de la capa de seguridad de Flask, específicamente el análisis de headers CORS (Preflight y Access-Control) para mitigar vulnerabilidades de Cross-Origin.
+- **Caso de Uso**: Auditoría de la capa de seguridad de Flask, análisis de headers CORS, y revisión de código automatizada.
 
-## Estado actual
-🚀 **Hito Alcanzado: Arquitectura Multi-Contenedor Completa (15/05/2026)**. PizzaOS ahora es un ecosistema 100% portable y autónomo. Hemos integrado el Frontend de Angular con Nginx como servidor de producción y proxy inverso, el Backend de Flask y la Base de Datos PostgreSQL en una orquestación profesional.
-
-### 🍕 Gestión de Inventario Inteligente (Update 24/04/2026)
-El sistema ahora incluye un motor de descuentos automáticos vinculado al estado de los pedidos:
-- **Activación por Estado:** Los insumos se descuentan únicamente cuando el pedido cambia a estado "Entregado".
-- **Lógica de Recetas:** Cada producto está vinculado a una receta técnica (ej. gramos de queso, ml de salsa).
-- **Sistema Anti-Errores:** El backend valida la integridad de los datos mediante ID y fallback por nombre, asegurando que el stock siempre sea preciso.
-- **Control de Ruptura de Stock:** Validación automática que impide la entrega si no hay existencias suficientes.
-- **Actualización de precios y análisis de rentabilidad:** Se cargaron precios reales de insumos; el Análisis de Rentabilidad solo considera 'Precio 1' (pizza pequeña), dejando a la Pizza Marinara con margen crítico del 27.3%. Pendiente: desglose por tamaños de pizza.
-## ☁️ Despliegue en la Nube (Producción)
-PizzaOS utiliza una arquitectura multi-contenedor desacoplada en **Microsoft Azure** para garantizar escalabilidad y rendimiento:
-
-- **Frontend (Angular)**: Desplegado en [Azure Web App (pizzaos-web)](https://pizzaos-web-hxd3bbddgwcugnd2.canadaeast-01.azurewebsites.net). Se conecta directamente a la API en la nube para optimizar la latencia y evitar bucles de proxy interno (hairpinning).
-- **Backend (Flask)**: Ejecutándose en [Azure Web App (pizzaos-api)](https://pizzaos-api-hxd3bbddgwcugnd2.canadaeast-01.azurewebsites.net). Implementa CORS dinámico y robustez en la gestión de peticiones JSON.
-- **Base de Datos**: [Azure Database for PostgreSQL (Flexible Server)](https://portal.azure.com) en la región Canada Central, asegurando persistencia de datos gestionada.
-- **Registro de Imágenes**: Azure Container Registry (ACR) privado para la gestión de versiones del sistema.
+## Licencia
+**Desarrollado por:** Camilo Martinez Galarza (CMG-Solutions)  
+**Proyecto:** Personal-Proprietary — Todos los derechos reservados.
