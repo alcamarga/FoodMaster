@@ -142,7 +142,8 @@ export class MenuComponent implements OnInit {
 
   agregarAlCarrito(pizza: Pizza, tamanoLabel: string, precio: number): void {
     if (!this.estaAutenticado()) {
-      this.router.navigate(['/login']);
+      // Español: redirigir al login con intención de volver al resumen | English: redirect to login with intent to return to cart
+      this.router.navigate(['/login'], { queryParams: { redirect: '/resumen' } });
       return;
     }
 

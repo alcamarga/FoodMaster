@@ -40,7 +40,40 @@
         }
       </div>
 
-      <div class="totals-section mt-4 pt-3 border-top border-secondary border-opacity-50">
+      <!-- Español: formulario de datos de entrega | English: delivery info form -->
+      <div class="delivery-form mt-4 pt-3 border-top border-secondary border-opacity-50">
+        <h5 class="text-warning fw-bold mb-3">🚚 Datos de Entrega</h5>
+
+        <div class="mb-3">
+          <label class="form-label text-white-50 small mb-1">📍 Dirección de entrega *</label>
+          <input type="text" class="form-control bg-dark text-white border-secondary"
+                 [(ngModel)]="direccion"
+                 placeholder="Calle, número, barrio, referencia..."
+                 style="background: rgba(255,255,255,0.05);">
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small mb-1">📞 Teléfono de contacto *</label>
+            <input type="tel" class="form-control bg-dark text-white border-secondary"
+                   [(ngModel)]="telefono"
+                   placeholder="300 123 4567"
+                   style="background: rgba(255,255,255,0.05);">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-white-50 small mb-1">💳 Método de pago *</label>
+            <select class="form-select bg-dark text-white border-secondary"
+                    [(ngModel)]="metodoPago"
+                    style="background: rgba(255,255,255,0.05);">
+              <option [ngValue]="null" disabled>Selecciona un método</option>
+              <option value="Efectivo">💵 Efectivo</option>
+              <option value="Transferencia">🏦 Transferencia</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="totals-section mt-3 pt-3 border-top border-secondary border-opacity-50">
         <div class="d-flex justify-content-between text-white mb-2">
           <span class="text-white-50">Subtotal ({{ totalItems() }} items)</span>
           <span>${{ total() | number:'1.0-0' }}</span>

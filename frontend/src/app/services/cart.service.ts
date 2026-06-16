@@ -108,14 +108,14 @@ export class CartService {
     this._items.set([]);
   }
 
-  /** Envía el pedido al backend. */
-  confirmarPedido(usuarioId: number): Observable<any> {
+  /** Español: envía el pedido al backend con datos de entrega | English: send order to backend with delivery data */
+  confirmarPedido(usuarioId: number, datosEntrega?: { direccion: string; telefono: string; metodo_pago?: string | null }): Observable<any> {
     const subtotal = this.totalCarrito();
     const iva = subtotal * 0.19; // 19% IVA
     const total = subtotal + iva;
     const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-    const payload = {
+    const payload: any = {
       usuario_id: usuarioId,
       subtotal: subtotal,
       iva: iva,
@@ -129,6 +129,15 @@ export class CartService {
         precio: item.precioUnitario
       }))
     };
+
+    // Español: incluir datos de entrega si se proporcionaron | English: include delivery data if provided
+    if (datosEntrega) {
+      payload.direccion = datosEntrega.direccion;
+      payload.telefono = datosEntrega.telefono;
+      if (datosEntrega.metodo_pago) {
+        payload.metodo_pago = datosEntrega.metodo_pago;
+      }
+    }
 
     return this.http.post(`${this.apiUrl}/pedidos`, payload);
   }

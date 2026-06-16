@@ -28,9 +28,23 @@ export class LoginComponent implements OnInit {
     contrasena: ['', [Validators.required, Validators.minLength(6)]]
   });
 
+  redirectUrl: string | null = null;
+
   ngOnInit(): void {
-    console.log('[Login] Limpieza de emergencia de localStorage');
-    localStorage.clear();
+    // Español: leer redirect de queryParams (ej: /resumen) | English: read redirect from queryParams (e.g. /resumen)
+    this.router.routerState.root.queryParams.subscribe(params => {
+      this.redirectUrl = params['redirect'] || null;
+      if (this.redirectUrl) {
+        console.log('[Login] Redirigirá a', this.redirectUrl, 'tras login exitoso');
+      }
+    });
+    console.log('[Login] Limpieza de sesión previa (sin tocar el carrito)');
+    // Español: limpiar solo datos de sesión, conservar carrito | English: clear only session data, preserve cart
+    const carritoGuardado = localStorage.getItem('carrito');
+    this.auth.limpiarSesion();
+    if (carritoGuardado) {
+      localStorage.setItem('carrito', carritoGuardado);
+    }
   }
 
   enviando = false;
@@ -66,25 +80,13 @@ export class LoginComponent implements OnInit {
           console.log('[LoginComponent] Login exitoso. Refrescando aplicación hacia el Dashboard...');
           window.location.href = '/admin/dashboard';
         } else {
-          // Verificar si hay intención de compra guardada
-          const intencionCruda = localStorage.getItem('intencion_compra');
-          if (intencionCruda) {
-            try {
-              const intencion = JSON.parse(intencionCruda) as {
-                pizzaId: number;
-                tamanoIndice: number;
-              };
-              // Limpiar intención y redirigir al menú
-              localStorage.removeItem('intencion_compra');
-              this.router.navigate(['/menu'], {
-                queryParams: { agregar: intencion.pizzaId, tamano: intencion.tamanoIndice }
-              });
-              return;
-            } catch (e) {
-              localStorage.removeItem('intencion_compra');
-            }
+          // Español: redirigir a la URL guardada (si existe) o al menú | English: redirect to saved URL (if exists) or to menu
+          if (this.redirectUrl) {
+            console.log('[Login] Redirigiendo a:', this.redirectUrl);
+            this.router.navigateByUrl(this.redirectUrl);
+          } else {
+            this.router.navigate(['/menu']);
           }
-          this.router.navigate(['/menu']);
         }
       },
       error: (err: { status: number }) => {
