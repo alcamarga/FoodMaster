@@ -9,6 +9,16 @@
     <p class="text-white mt-2">Cargando pedidos...</p>
   </div>
 
+  <!-- Español: filtro de tipo de pedido | English: order type filter -->
+  <div *ngIf="!cargando" class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+    <span class="text-white-50 small">🔍 Filtrar por tipo:</span>
+    <div class="btn-group btn-group-sm" role="group">
+      <button class="btn" [class.btn-warning]="filtroTipo === 'todos'" [class.btn-outline-secondary]="filtroTipo !== 'todos'" (click)="filtroTipo = 'todos'">📋 Todos</button>
+      <button class="btn" [class.btn-warning]="filtroTipo === 'mesa'" [class.btn-outline-secondary]="filtroTipo !== 'mesa'" (click)="filtroTipo = 'mesa'">🪑 Mesa</button>
+      <button class="btn" [class.btn-warning]="filtroTipo === 'domicilio'" [class.btn-outline-secondary]="filtroTipo !== 'domicilio'" (click)="filtroTipo = 'domicilio'">🚚 Domicilio</button>
+    </div>
+  </div>
+
   <div *ngIf="!cargando" class="table-wrapper">
     <table class="admin-table">
       <thead>
@@ -16,6 +26,7 @@
           <th>ID</th>
           <th>Fecha</th>
           <th>Cliente</th>
+          <th>Tipo</th>
           <th class="text-end">Subtotal</th>
           <th class="text-end">IVA</th>
           <th class="text-end">Total</th>
@@ -24,10 +35,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of pedidos">
+        <tr *ngFor="let p of pedidosFiltrados">
           <td class="fw-bold text-warning">#{{ p.id }}</td>
           <td class="text-white-50 small">{{ p.fecha_hora || p.fecha || '—' }}</td>
           <td>{{ p.cliente || ('User #' + p.usuario_id) }}</td>
+          <td>
+            <span class="tipo-badge" [class]="getTipoClase(p)">{{ getTipoLabel(p) }}</span>
+          </td>
           <td class="text-end text-white-50">${{ subtotalPedido(p) | number:'1.0-0' }}</td>
           <td class="text-end text-white-50 small">${{ ivaPedido(p) | number:'1.0-0' }}</td>
           <td class="text-end price fw-bold">${{ p.total | number:'1.0-0' }}</td>
@@ -56,7 +70,7 @@
         </tr>
 
         <tr *ngIf="!pedidos || pedidos.length === 0">
-          <td colspan="8" class="text-center text-muted py-5">
+          <td colspan="9" class="text-center text-muted py-5">
             <div class="fs-4 opacity-50">📭</div>
             No hay pedidos registrados en el sistema.
           </td>

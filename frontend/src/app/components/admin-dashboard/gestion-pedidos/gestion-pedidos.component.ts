@@ -32,6 +32,28 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
   estadosDisponibles = ['Pendiente', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
   private sub: Subscription | null = null;
 
+  // Español: filtro de tipo de pedido | English: order type filter
+  filtroTipo: string = 'todos'; // 'todos' | 'mesa' | 'domicilio'
+
+  // Español: obtener pedidos filtrados por tipo | English: get orders filtered by type
+  get pedidosFiltrados(): Pedido[] {
+    if (this.filtroTipo === 'todos') return this.pedidos;
+    return this.pedidos.filter(p => this.getTipoPedido(p) === this.filtroTipo);
+  }
+
+  // Español: determinar tipo de pedido (Mesa o Domicilio) | English: determine order type (Table or Delivery)
+  getTipoPedido(pedido: Pedido): string {
+    return pedido.direccion_entrega ? 'domicilio' : 'mesa';
+  }
+
+  getTipoLabel(pedido: Pedido): string {
+    return pedido.direccion_entrega ? '🚚 Domicilio' : '🪑 Mesa';
+  }
+
+  getTipoClase(pedido: Pedido): string {
+    return pedido.direccion_entrega ? 'badge-delivery' : 'badge-mesa';
+  }
+
   ngOnInit(): void {
     // Nos suscribimos al estado de la sesión para cargar los pedidos apenas el admin entre
     this.sub = this.authService.sesionActiva$.subscribe(sesion => {

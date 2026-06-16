@@ -25,12 +25,15 @@ FoodMaster utiliza **Angular 19** como framework frontend, combinado con **Signa
 - **🎨 Diseño Premium**: Tema oscuro con glassmorphism, acentos esmeralda, y animaciones sutiles.
 - **🔐 RBAC Profesional**: Control de acceso basado en roles (Admin, Cocinero, Domiciliario, Mesero) con interfaces adaptativas.
 - **🪑 Gestión de Mesas**: Sistema de mesas con comandas estilo "DiscOS" — apertura, cierre, agregado de productos en tiempo real.
+- **🚚 Delivery Inteligente**: Flujo completo de delivery con asignación de domiciliarios, registro de pago (Efectivo/Transferencia) y seguimiento en tiempo real con timeline y código QR.
+- **📋 Tipos de Pedido**: El sistema diferencia claramente entre **pedidos de mesa** y **pedidos de domicilio**, con filtros y visualización dedicada en la gestión administrativa.
 - **📦 Inventario Inteligente**: Control detallado de insumos con descuento automático de stock (gr, ml, unidades) al entregar pedidos.
 - **📋 Recetas y Rentabilidad**: Recetas técnicas por producto con análisis de margen por tamaño y costo de producción.
 - **👥 Gestión de Personal**: Panel administrativo con CRUD completo de empleados y asignación de roles.
 - **📱 Responsive**: Diseñado para funcionar en tablets de cocina, dispositivos móviles y escritorio.
 - **🔒 Seguridad**: JWT, CORS dinámico, sanitización de inputs, y logging seguro sin datos sensibles.
 - **🧠 IA Local (Self-Hosted)**: Integración con Open WebUI + Ollama para auditoría técnica y revisión de código con privacidad total.
+- **📲 Código QR**: Cada pedido de delivery genera un código QR único que enlaza al seguimiento en tiempo real, facilitando la comunicación con el cliente.
 
 ### Estado Actual
 🚀 **Arquitectura Multi-Contenedor Completa**. FoodMaster es un ecosistema 100% portable y autónomo con frontend (Angular/Nginx), backend (Flask) y base de datos (PostgreSQL) orquestados profesionalmente.

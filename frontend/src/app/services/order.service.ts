@@ -25,6 +25,9 @@ export interface Pedido {
   estado?: string;
   articulos?: ItemPedido[];
   pizzas?: string;
+  direccion_entrega?: string;   // Español: si tiene dirección, es pedido de delivery | English: if has address, it's a delivery order
+  telefono_contacto?: string;   // Español: teléfono de contacto para delivery | English: contact phone for delivery
+  metodo_pago?: string | null;  // Español: método de pago registrado | English: registered payment method
 }
 
 @Injectable({ providedIn: 'root' })
