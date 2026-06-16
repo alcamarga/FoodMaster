@@ -1,1 +1,317 @@
-/* Español: estilos para el componente de seguimiento de pedido | English: styles for order tracking component */
+/* Español: estilos premium para seguimiento de pedido con timeline y QR | English: premium styles for order tracking with timeline and QR */
+
+.seguimiento-page {
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.seguimiento-container {
+  max-width: 680px;
+  width: 100%;
+}
+
+/* Loading & Error states */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #94a3b8;
+}
+
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(16, 185, 129, 0.2);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-icon { font-size: 3rem; margin-bottom: 1rem; }
+.error-state h3 { color: #ef4444; margin-bottom: 0.5rem; }
+
+/* Card principal */
+.pedido-card {
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* Header */
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.estado-icon { font-size: 2.5rem; }
+
+.pedido-header h2 {
+  color: #f1f5f9;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.estado-pendiente { background: rgba(234,179,8,0.15); color: #eab308; }
+.estado-en_preparacion { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.estado-listo { background: rgba(16,185,129,0.15); color: #10b981; }
+.estado-en_camino { background: rgba(168,85,247,0.15); color: #a855f7; }
+.estado-entregado { background: rgba(34,197,94,0.15); color: #22c55e; }
+
+.header-right { text-align: right; }
+
+.header-right .total {
+  color: #10b981;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.header-right .fecha {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+/* Timeline */
+.timeline-section {
+  margin-bottom: 2rem;
+}
+
+.timeline-section h3,
+.info-section h3,
+.qr-section h3 {
+  color: #f1f5f9;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.7rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: rgba(255,255,255,0.06);
+}
+
+.timeline-step {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  position: relative;
+  opacity: 0.35;
+  transition: opacity 0.4s ease;
+}
+
+.timeline-step.active { opacity: 0.7; }
+.timeline-step.completed { opacity: 1; }
+
+.step-indicator {
+  flex-shrink: 0;
+  width: 1.5rem;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-top: 0.25rem;
+  transition: all 0.3s ease;
+}
+
+.step-dot.pending { background: rgba(255,255,255,0.15); }
+.step-dot.active {
+  background: #10b981;
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
+  animation: pulse-dot 2s infinite;
+}
+.step-dot.completed {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16,185,129,0.3);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(16,185,129,0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(16,185,129,0.1); }
+}
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.timeline-step.completed .step-title {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.timeline-step.active .step-title {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.timeline-step:not(.active):not(.completed) .step-title {
+  color: #64748b;
+}
+
+.step-time {
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+/* Info sections */
+.info-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.info-text {
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.info-text.tel {
+  color: #10b981;
+  font-weight: 500;
+  margin-top: 0.35rem;
+}
+
+/* Artículos */
+.articulos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.articulo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.art-cantidad { color: #10b981; font-weight: 700; min-width: 1.5rem; }
+.art-nombre { flex: 1; }
+.art-tamano { color: #64748b; font-size: 0.8rem; }
+.art-precio { color: #f1f5f9; font-weight: 600; }
+
+/* QR Section */
+.qr-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.qr-hint {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.qr-wrapper {
+  display: inline-block;
+  padding: 0.75rem;
+  background: rgba(15, 15, 26, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(16,185,129,0.2);
+  box-shadow: 0 0 30px rgba(16,185,129,0.08);
+}
+
+.qr-image {
+  display: block;
+  border-radius: 8px;
+  image-rendering: pixelated;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.actions a {
+  text-decoration: none;
+  padding: 0.65rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.actions .btn-secondary {
+  background: rgba(255,255,255,0.06);
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.actions .btn-secondary:hover {
+  background: rgba(255,255,255,0.1);
+  color: #f1f5f9;
+}
+
+.actions .btn-primary {
+  background: #10b981;
+  color: #fff;
+}
+
+.actions .btn-primary:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .seguimiento-page { padding: 1rem 0.5rem; }
+  .pedido-card { padding: 1.25rem; border-radius: 14px; }
+  .pedido-header { flex-direction: column; gap: 1rem; }
+  .header-right { text-align: left; }
+  .header-right .total { font-size: 1.4rem; }
+  .estado-icon { font-size: 2rem; }
+}

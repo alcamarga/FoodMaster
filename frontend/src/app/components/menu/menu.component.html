@@ -49,6 +49,9 @@
           @if (usuarioActual?.rol === 'admin') {
             <button class="btn btn-warning btn-sm fw-bold" (click)="irAlDashboard()">📊 Dashboard</button>
           }
+          @if (usuarioActual?.rol === 'domiciliario') {
+            <button class="btn btn-info btn-sm fw-bold" (click)="router.navigate(['/delivery/activos'])">🚚 Delivery</button>
+          }
           @if (estaAutenticado()) {
             <button class="btn btn-warning btn-sm fw-bold position-relative me-2" (click)="router.navigate(['/resumen'])">
               🛒 Ver Carrito
