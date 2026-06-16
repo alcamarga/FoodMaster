@@ -10,6 +10,16 @@ class Pedido(db.Model):
     estado = db.Column(db.String(50), default='pendiente')
     articulos_json = db.Column(db.Text, nullable=True)  # Guardamos los productos como JSON
 
+    # Español: campos para delivery | English: delivery fields
+    direccion_entrega = db.Column(db.String(255), nullable=True, default='')   # Dirección de envío | Delivery address
+    telefono_contacto = db.Column(db.String(20), nullable=True, default='')    # Teléfono del cliente | Customer phone
+    metodo_pago = db.Column(db.String(20), nullable=True, default=None)        # 'Efectivo' | 'Transferencia'
+    domiciliario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True, default=None)  # Domiciliario asignado | Assigned delivery person
+    fecha_entrega = db.Column(db.DateTime, nullable=True, default=None)        # Timestamp de entrega | Delivery timestamp
+
+    # Relaciones | Relationships
+    domiciliario_rel = db.relationship('Usuario', foreign_keys=[domiciliario_id], lazy=True)
+
     def serializar(self):
         import json
         articulos_lista = []
@@ -19,11 +29,22 @@ class Pedido(db.Model):
             except:
                 pass
 
-        return {
+        resultado = {
             "id": self.id,
             "cliente_id": self.cliente_id,
-            "fecha": self.fecha.isoformat(),
-            "total": float(self.total),
-            "estado": self.estado,
-            "articulos": articulos_lista
+            "fecha": self.fecha.isoformat() if self.fecha else None,
+            "total": float(self.total) if self.total else 0,
+            "estado": self.estado or 'pendiente',
+            "articulos": articulos_lista,
+            "direccion_entrega": self.direccion_entrega or '',
+            "telefono_contacto": self.telefono_contacto or '',
+            "metodo_pago": self.metodo_pago,
+            "domiciliario_id": self.domiciliario_id,
+            "fecha_entrega": self.fecha_entrega.isoformat() if self.fecha_entrega else None,
         }
+
+        # Español: incluir nombre del domiciliario si está asignado | English: include delivery person name if assigned
+        if self.domiciliario_rel:
+            resultado['domiciliario_nombre'] = self.domiciliario_rel.nombre
+
+        return resultado

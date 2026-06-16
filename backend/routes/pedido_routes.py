@@ -37,7 +37,10 @@ def crear_pedido():
             cliente_id=datos.get('usuario_id') or datos.get('cliente_id'),
             articulos_json=articulos_str,
             total=datos.get('total'),
-            estado=datos.get('estado', 'pendiente')
+            estado=datos.get('estado', 'pendiente'),
+            # Español: campos de delivery | English: delivery fields
+            direccion_entrega=datos.get('direccion') or datos.get('direccion_entrega', ''),
+            telefono_contacto=datos.get('telefono') or datos.get('telefono_contacto', ''),
         )
         db.session.add(nuevo_pedido)
         # Descuento de inventario al crear el pedido

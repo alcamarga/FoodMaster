@@ -20,6 +20,7 @@ from routes.auth_routes import auth_bp
 from routes.mesa_routes import mesa_bp
 from routes.grupo_producto_routes import grupo_producto_bp, verificar_esquema_grupo, sembrar_grupos
 from routes.caja_routes import caja_bp
+from routes.delivery_routes import delivery_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -53,6 +54,7 @@ app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(mesa_bp, url_prefix='/api')
 app.register_blueprint(grupo_producto_bp, url_prefix='/api')
 app.register_blueprint(caja_bp, url_prefix='/api')
+app.register_blueprint(delivery_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
@@ -122,6 +124,10 @@ if __name__ == '__main__':
 
         # Verificar esquema y migrar columnas faltantes | Verify schema and migrate missing columns
         verificar_esquema_grupo()
+
+        # Español: migrar columnas de delivery en la tabla pedido | English: migrate delivery columns on pedido table
+        from routes.delivery_routes import migrar_columnas_delivery
+        migrar_columnas_delivery()
 
         # Sembrar grupos por defecto | Seed default groups
         sembrar_grupos()
