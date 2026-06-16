@@ -1,8 +1,8 @@
 <div class="mis-pedidos-page">
   <div class="mis-pedidos-container">
     <div class="header">
-      <h1>🍕 Mis Pedidos</h1>
-      <p>Sigue el rastro de tus pizzas favoritas</p>
+      <h1>🍽️ Mis Pedidos</h1>
+      <p>Sigue el rastro de tus pedidos favoritos</p>
     </div>
 
     <!-- Cargando -->
@@ -13,7 +13,7 @@
 
     <!-- Sin pedidos -->
     <div *ngIf="!cargando && pedidos && pedidos.length === 0" class="empty-state">
-      <div style="font-size: 4rem;">🍕</div>
+      <div style="font-size: 4rem;">🍽️</div>
       <h3>Aún no tienes pedidos</h3>
       <p>¿Qué tal si pides algo delicioso ahora?</p>
       <button routerLink="/menu" class="btn-primary">Ver Menú</button>

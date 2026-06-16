@@ -1,69 +1,48 @@
----
-## 📜 Control de Calidad y Autoría
-- **Lead Developer:** Camilo
-- **Asistente de Arquitectura:** Gemini/Cami
-- **Última Revisión:** 10 de abril de 2026
-- **Estado:** Estructura técnica inicial
+🛠️ Instrucciones Generales del Sistema
+Creado por: Camilo Martinez Galarza (CMG-Solutions)
+Fecha: 15 de junio de 2026
+Estado: Validado
+Modificaciones: Al realizar modificaciones significativas, el agente debe mantener o actualizar este encabezado.
 
-> "Este estándar es la ley en la Pizzería Core. Cualquier desviación debe ser consultada con Camilo."
----
+📜 Control de Autoría y Arquitectura
+Lead Architect: Camilo Martinez Galarza
 
+Asistente de Arquitectura: Gemini/Cami
 
-# 🛠️ Reglas de Operación en el Sistema (WSL Ubuntu)
+"Este documento es la ley operativa en el ecosistema FoodMaster. Toda desviación de las reglas aquí descritas debe ser consultada con el Lead Architect."
 
-Este archivo guía a Milo sobre cómo interactuar con mi computadora.
+Este archivo guía a los agentes sobre cómo operar en el entorno de desarrollo (WSL/Ubuntu).
 
-## 1. Gestión de Entorno (Python)
-- Siempre verifica que el entorno virtual `.venv` esté activo antes de sugerir instalar librerías.
-- Si el entorno no está activo, el comando para activarlo es: `source backend/.venv/bin/activate`.
+1. Gestión de Entorno (Python)
+Siempre verificar que el entorno virtual .venv esté activo antes de ejecutar comandos.
 
-## 2. Permisos y Ejecución
-- Como estamos en Ubuntu, si un comando de instalación falla, intenta sugerir el uso de `sudo`.
-- No modifiques archivos dentro de la carpeta `.venv` directamente.
+Comando de activación: source backend/.venv/bin/activate.
 
-## 3. Resolución de conflictos (puertos)
+2. Permisos y Ejecución
+Preferir el uso de comandos sin sudo a menos que sea estrictamente necesario para instalaciones del sistema en Ubuntu/WSL.
 
-Política única para **Flask (5000)** y **Angular / `ng serve` (4200)** cuando aparezca *address already in use* o el servidor no arranca.
+Prohibido: Modificar manualmente archivos dentro de la carpeta .venv.
 
-1. **Diagnóstico (recomendado primero)**  
-   Identificar qué proceso usa el puerto:
-   ```bash
-   sudo lsof -i :5000
-   sudo lsof -i :4200
-   ```
-   Con el PID, se puede terminar con `kill <PID>` (o `kill -9` solo si hace falta).
+3. Resolución de Conflictos (Puertos)
+Diagnóstico: Utilizar sudo lsof -i :[PUERTO] para identificar procesos.
 
-2. **Liberación rápida en Linux/WSL**  
-   Si hay procesos huérfanos tras cerrar terminales y quieres vaciar el puerto de una vez:
-   ```bash
-   fuser -k 5000/tcp
-   fuser -k 4200/tcp
-   ```
-   **Precaución:** `fuser -k` envía señal de terminación a *todos* los procesos enlazados a ese puerto; no lo uses si otro servicio legítimo lo está usando.
+Liberación: Utilizar fuser -k [PUERTO]/tcp para vaciar puertos ocupados.
 
-- El `frontend/README.md` (documentación técnica del frontend) **remite a esta sección** para los comandos de puertos, evitando duplicar la política en dos sitios.
+Nota: Esta política es la fuente única de verdad para la gestión de puertos en FoodMaster.
 
-## 4. Automatización de Documentación
-- Cada vez que terminemos una funcionalidad importante, recuérdame actualizar mi tablero en Notion.
+4. Protocolo de Documentación
+Encabezado Obligatorio: Todo archivo nuevo debe incluir el bloque de autoría (Camilo Martinez Galarza / CMG-Solutions) definido en los estándares específicos de Backend y Frontend.
 
-## 5. Política de idiomas en código — comentarios espejo (dual language)
+Tablero de Tareas: Actualizar tasks.md tras cada hito importante de desarrollo.
 
-Todo **comentario dentro del código** debe usar el formato **español primero, inglés después**, separados por ` | ` (espacio, barra vertical, espacio).
+5. Política de Idiomas (Formato Espejo)
+Todo comentario dentro del código es obligatorio bajo el formato: # [Español] | [English] (o //, /*, <!-- según el lenguaje).
 
-### Formato
-- **TypeScript / JavaScript:** `// [Español] | [English]`
-- **Python:** `# [Español] | [English]` (misma regla; el símbolo de comentario es `#`).
-- **HTML (plantillas):** `<!-- [Español] | [English] -->` cuando el comentario sea necesario en el markup.
-- **CSS / SCSS:** `/* [Español] | [English] */`
+Ejemplo: // Inicializar controlador | Initialize controller
 
-### Ejemplo (TypeScript)
-```typescript
-// Obtener la lista de pedidos desde el servidor | Get the order list from the server
-this.http.get(url)...
-```
+6. Alcance y Seguridad
+Alcance: Este archivo aplica de forma transversal a todo el proyecto FoodMaster (/backend, /frontend, y scripts de utilería). Es la normativa superior que rige el comportamiento de los agentes en el sistema.
 
-### Alcance
-- Aplica a **comentarios de línea o bloque** que expliquen la intención del código.
-- **Docstrings** de Python: si el estándar del backend pide docstring, puede usarse una sola línea inicial con el mismo patrón `Español | English`, o el cuerpo bilingüe acordado con el Lead Developer; lo obligatorio para comentarios inline es el formato espejo anterior.
+Protocolo de Seguridad: Toda implementación relacionada con autenticación, manejo de secretos, o exposición de APIs debe cumplir estrictamente con los lineamientos definidos en el archivo seguridad.md. Ante la duda, el agente debe detenerse y consultar seguridad.md antes de escribir código.
 
-Esta política es **obligatoria** en `frontend/` y `backend/` salvo que Camilo indique una excepción puntual.
+"Lógica sólida, orden total, seguridad blindada. 🚀"

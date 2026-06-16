@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-import { PizzaService } from '../../services/pizza.service';
 import { Usuario } from '../../models/usuario.model';
 
 // Importa los componentes hijos para que el HTML los reconozca (Errores NG8001)
@@ -14,6 +13,8 @@ import { GestionPedidosComponent } from './gestion-pedidos/gestion-pedidos.compo
 import { ConfiguracionRecetasComponent } from './configuracion-recetas/configuracion-recetas.component';
 import { GestionPersonalComponent } from './gestion-personal/gestion-personal.component';
 import { RentabilidadComponent } from './rentabilidad/rentabilidad.component';
+import { MesasComponent } from '../mesas/mesas.component';
+import { FinanzasComponent } from '../finanzas/finanzas.component';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -26,30 +27,19 @@ import { RentabilidadComponent } from './rentabilidad/rentabilidad.component';
     GestionPedidosComponent,
     ConfiguracionRecetasComponent,
     GestionPersonalComponent,
-    RentabilidadComponent
+    RentabilidadComponent,
+    MesasComponent,
+    FinanzasComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
 })
 export class AdminDashboardComponent implements OnInit {
-  ventasDelDia: number = 0;
-  pedidosPendientes: number = 0;
-  inventarioPizzas: number = 0;
-  pedidosRecientes: any[] = [];
-
-  // Usamos 'pestanaActiva' sin la ñ si tu HTML lo tiene así, 
-  // o 'pestañaActiva' según lo que diga el error TS2551. 
-  // Viendo tu error, el HTML busca 'pestanaActiva'.
   pestanaActiva: string = 'pedidos';
   usuario: Usuario | null = null;
-  
-  // Variables para Modal de Detalle
-  pedidoDetalle: any = null;
-  mostrarDetalle = false;
 
   constructor(
     private auth: AuthService,
-    private pizzaService: PizzaService
   ) {
     this.usuario = this.auth.obtenerUsuarioActual();
     if (this.usuario?.rol === 'cocinero') {
@@ -58,44 +48,11 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.cargarPedidosDesdeDB();
+    // No se cargan KPIs redundantes — los reportes están en la pestaña Cierre y Finanzas
+    // No redundant KPIs loaded — reports are in the Cierre y Finanzas tab
   }
 
-  // Esta es la función que te faltaba (Error TS2339)
   cambiarPestana(nombrePestana: string) {
     this.pestanaActiva = nombrePestana;
-  }
-
-  cargarPedidosDesdeDB() {
-    this.pizzaService.obtenerTodosLosPedidos().subscribe({
-      next: (pedidos: any[]) => {
-        this.pedidosRecientes = pedidos || [];
-        this.pedidosPendientes = pedidos ? pedidos.length : 0;
-        this.ventasDelDia = 12450;
-        this.inventarioPizzas = 150;
-      },
-      error: (err) => {
-        console.error('Error conectando con el backend de PizzaOS:', err);
-      }
-    });
-  }
-
-  // --- MÉTODOS PARA EL MODAL DE DETALLE ---
-  verDetalle(pedido: any): void {
-    this.pedidoDetalle = pedido;
-    this.mostrarDetalle = true;
-  }
-
-  cerrarDetalle(): void {
-    this.mostrarDetalle = false;
-    this.pedidoDetalle = null;
-  }
-
-  subtotalPedido(pedido: any): number {
-    return Math.round((pedido.total ?? 0) / 1.19);
-  }
-
-  ivaPedido(pedido: any): number {
-    return Math.round((pedido.total ?? 0) - this.subtotalPedido(pedido));
   }
 }

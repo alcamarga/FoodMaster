@@ -6,6 +6,7 @@ export interface Pizza {
   nombre: string;
   descripcion: string;
   categoria: string;
+  tags?: string[];
   precio_1?: number;
   precio_2?: number;
   precio_3?: number;

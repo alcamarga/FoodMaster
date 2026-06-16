@@ -15,7 +15,7 @@ export interface RecetaItem {
 @Injectable({ providedIn: 'root' })
 export class RecipeService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/pizzas`;
+  private apiUrl = `${environment.apiUrl}/productos`;
 
   obtenerReceta(pizzaId: number, size?: string): Observable<{ receta: RecetaItem[] }> {
     const url = `${this.apiUrl}/${pizzaId}/receta${size ? '?size=' + size : ''}`;

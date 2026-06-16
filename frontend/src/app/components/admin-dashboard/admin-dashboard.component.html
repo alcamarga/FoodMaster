@@ -1,79 +1,21 @@
-<div class="dashboard-container">
-  <h1>Panel de Administrador</h1>
+<!--
+  **Creado por:** Camilo Martinez Galarza (CMG-Solutions)
+  **Fecha:** 15 de junio de 2026
+  **Estado:** Refactorizado
+  Modificaciones: Se eliminó la tabla de Pedidos Recientes y el modal de detalle para simplificar la vista.
+  La gestión de pedidos ahora se accede exclusivamente desde la pestaña "Gestión de Pedidos".
 
-  <div class="row g-4 mb-4" *ngIf="usuario?.rol === 'admin'">
-    <div class="col-md-4">
-      <div class="stat-card p-3 d-flex align-items-center">
-        <div class="icon-box bg-success bg-opacity-25 text-success me-3">💰</div>
-        <div>
-          <div class="text-muted small">Ventas del Día</div>
-          <div class="h4 fw-bold mb-0">${{ ventasDelDia | number }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="stat-card p-3 d-flex align-items-center">
-        <div class="icon-box bg-warning bg-opacity-25 text-warning me-3">📦</div>
-        <div>
-          <div class="text-muted small">Pedidos Pendientes</div>
-          <div class="h4 fw-bold mb-0">{{ pedidosPendientes }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="stat-card p-3 d-flex align-items-center">
-        <div class="icon-box bg-info bg-opacity-25 text-info me-3">🍕</div>
-        <div>
-          <div class="text-muted small">Pizzas en Inventario</div>
-          <div class="h4 fw-bold mb-0">{{ inventarioPizzas }}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- Nueva Sección: Tabla de Pedidos Recientes -->
-  <div class="row mt-4" *ngIf="usuario?.rol === 'admin'">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold">Gestión de Pedidos Recientes</h5>
-          <button class="btn btn-primary btn-sm">Actualizar</button>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Cliente</th>
-                  <th>Dirección de Entrega</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Aquí usaremos la lógica de Angular para listar tus pedidos de la DB -->
-                <tr *ngFor="let pedido of pedidosRecientes">
-                  <td class="fw-bold">#{{ pedido.id }}</td>
-                  <td>{{ pedido.cliente_nombre }}</td>
-                  <td>{{ pedido.direccion }}</td>
-                  <td>{{ pedido.total | currency }}</td>
-                  <td>
-                    <span [class]="'status-badge ' + (pedido.estado ? pedido.estado.toLowerCase() : 'pendiente')">
-                      {{ pedido.estado || 'Pendiente' }}
-                    </span>
-                  </td>
-                  <td>
-                    <button class="btn btn-outline-secondary btn-sm" (click)="verDetalle(pedido)">Ver Detalle</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  Plantilla del panel de administración | Admin dashboard template
+-->
+
+<div class="dashboard-container">
+  <h1 class="text-center text-white fw-bold mb-4" style="text-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+    🏪 Panel de Administración
+  </h1>
+
+  <!-- Encabezado limpio: sin KPIs redundantes. Los reportes financieros se acceden desde la pestaña Cierre y Finanzas. | Clean header: no redundant KPIs. Financial reports are accessed from the Cierre y Finanzas tab. -->
+
+  <!-- Menú de navegación por pestañas | Tab navigation menu -->
   <div class="tabs-container mt-4 mb-3 p-3"
     style="background: rgba(0,0,0,0.6); border-radius: 10px; border: 1px solid rgba(212,175,55,0.3);">
     <ul class="nav nav-tabs border-0">
@@ -81,14 +23,14 @@
         <a class="nav-link fw-bold"
           [ngClass]="pestanaActiva === 'menu' ? 'text-dark bg-warning border-warning' : 'text-warning'"
           (click)="cambiarPestana('menu')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
-          🍕 Gestión de Menú
+          🍽️ Gestión de Menú
         </a>
       </li>
       <li class="nav-item ms-2" *ngIf="usuario?.rol === 'admin'">
         <a class="nav-link fw-bold"
           [ngClass]="pestanaActiva === 'insumos' ? 'text-dark bg-warning border-warning' : 'text-warning'"
           (click)="cambiarPestana('insumos')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
-          🧀 Inventario de Insumos
+          🍽️ Inventario de Insumos
         </a>
       </li>
       <li class="nav-item ms-2">
@@ -119,104 +61,56 @@
           📊 Rentabilidad
         </a>
       </li>
+      <li class="nav-item ms-2">
+        <a class="nav-link fw-bold"
+          [ngClass]="pestanaActiva === 'mesas' ? 'text-dark bg-warning border-warning' : 'text-warning'"
+          (click)="cambiarPestana('mesas')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
+          🍽️ Mesas y Comandas
+        </a>
+      </li>
+      <!-- Nueva pestaña de finanzas | New finance tab -->
+      <li class="nav-item ms-2" *ngIf="usuario?.rol === 'admin'">
+        <a class="nav-link fw-bold"
+          [ngClass]="pestanaActiva === 'finanzas' ? 'text-dark bg-warning border-warning' : 'text-success'"
+          (click)="cambiarPestana('finanzas')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
+          🗃️ Cierre y Finanzas
+        </a>
+      </li>
     </ul>
   </div>
 
+  <!-- Contenido de las pestañas | Tab content -->
   <div class="tab-content">
     <div *ngIf="pestanaActiva === 'menu'">
-      <!-- Componente para las Pizzas y 3 precios | Pizza catalog component -->
       <app-dashboard></app-dashboard>
     </div>
 
     <div *ngIf="pestanaActiva === 'insumos'">
-      <!-- Componente para harina, queso, etc. | Supplies inventory component -->
       <app-inventario></app-inventario>
     </div>
 
     <div *ngIf="pestanaActiva === 'pedidos'">
-      <!-- Componente para gestionar pedidos y estados -->
       <app-gestion-pedidos></app-gestion-pedidos>
     </div>
 
     <div *ngIf="pestanaActiva === 'recetas' && usuario?.rol === 'admin'">
-      <!-- Componente para configurar recetas -->
       <app-configuracion-recetas></app-configuracion-recetas>
     </div>
 
     <div *ngIf="pestanaActiva === 'personal' && usuario?.rol === 'admin'">
-      <!-- Componente para gestionar personal -->
       <app-gestion-personal></app-gestion-personal>
     </div>
 
     <div *ngIf="pestanaActiva === 'rentabilidad' && usuario?.rol === 'admin'">
-      <!-- Módulo de análisis de rentabilidad por producto -->
       <app-rentabilidad></app-rentabilidad>
     </div>
-  </div>
-</div>
 
-<!-- MODAL DE DETALLE DE PEDIDO (Clonado de Gestión Pedidos) -->
-<div class="modal-overlay" *ngIf="mostrarDetalle" (click)="cerrarDetalle()">
-  <div class="modal-detalle" (click)="$event.stopPropagation()">
-
-    <div class="modal-detalle-header">
-      <h3>🧾 Detalle — Orden #{{ pedidoDetalle?.id }}</h3>
-      <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+    <div *ngIf="pestanaActiva === 'mesas'">
+      <app-mesas></app-mesas>
     </div>
 
-    <div class="modal-detalle-body" *ngIf="pedidoDetalle">
-
-      <div class="detalle-meta">
-        <span>📅 {{ pedidoDetalle.fecha_hora || pedidoDetalle.fecha || '—' }}</span>
-        <span>👤 {{ pedidoDetalle.cliente_nombre || pedidoDetalle.cliente || ('User #' + pedidoDetalle.cliente_id) }}</span>
-        <span class="badge-estado">{{ pedidoDetalle.estado || 'Pendiente' }}</span>
-      </div>
-
-      <table class="detalle-table" *ngIf="pedidoDetalle.articulos && pedidoDetalle.articulos.length > 0">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th class="text-center">Tamaño</th>
-            <th class="text-center">Cant.</th>
-            <th class="text-end">P. Unit.</th>
-            <th class="text-end">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let art of pedidoDetalle.articulos">
-            <td class="fw-bold">{{ art.nombre || art.producto_nombre || 'Artículo' }}</td>
-            <td class="text-center text-white-50">{{ art.tamano || 'N/A' }}</td>
-            <td class="text-center">{{ art.cantidad || 1 }}</td>
-            <td class="text-end text-white-50">${{ (art.precio || art.precio_unitario || 0) | number:'1.0-0' }}</td>
-            <td class="text-end text-warning fw-bold">${{ ((art.precio || art.precio_unitario || 0) * (art.cantidad || 1)) | number:'1.0-0' }}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div *ngIf="!pedidoDetalle.articulos || pedidoDetalle.articulos.length === 0"
-           class="text-center text-muted py-3">
-        <span>Sin detalle de productos disponible.</span>
-      </div>
-
-      <div class="detalle-totales">
-        <div class="detalle-fila">
-          <span>Subtotal</span>
-          <span>${{ subtotalPedido(pedidoDetalle) | number:'1.0-0' }}</span>
-        </div>
-        <div class="detalle-fila text-muted small">
-          <span>IVA (19%)</span>
-          <span>${{ ivaPedido(pedidoDetalle) | number:'1.0-0' }}</span>
-        </div>
-        <div class="detalle-fila total-final">
-          <span>TOTAL</span>
-          <span>${{ (pedidoDetalle.total || 0) | number:'1.0-0' }}</span>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="modal-detalle-footer">
-      <button class="btn btn-outline-light" (click)="cerrarDetalle()">Cerrar</button>
+    <div *ngIf="pestanaActiva === 'finanzas' && usuario?.rol === 'admin'">
+      <app-finanzas></app-finanzas>
     </div>
   </div>
 </div>

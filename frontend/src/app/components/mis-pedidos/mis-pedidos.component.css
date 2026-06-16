@@ -1,13 +1,61 @@
+/* **Creado por:** Camilo Martinez Galarza (CMG-Solutions) | **Fecha:** 16/06/2026 */
+/* **Estética:** Dark Mode Premium con acentos esmeralda | Premium Dark Mode with emerald accents */
+
+/* Variables compartidas | Shared variables */
+:host {
+  --esmeralda: #10b981;
+  --esmeralda-claro: #34d399;
+  --esmeralda-oscuro: #059669;
+  --esmeralda-glow: rgba(16, 185, 129, 0.25);
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-card: #1a1a1a;
+  --bg-card-hover: #1e1e1e;
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-esmeralda: rgba(16, 185, 129, 0.3);
+  --text-primary: #f0f0f0;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --radio: 16px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Montserrat', 'Inter', sans-serif;
+}
+
+/* Página con fondo de imagen y overlay oscuro | Page with background image and dark overlay */
+.mis-pedidos-page {
+  background-image: url('/assets/images/fondo_restaruante_logeo.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  position: relative;
+}
+
+.mis-pedidos-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 0;
+}
+
+/* Contenedor principal con glass effect | Main container with glass effect */
 .mis-pedidos-container {
+  position: relative;
+  z-index: 1;
   max-width: 900px;
   margin: 2rem auto;
   padding: 2rem;
-  background: rgba(15, 15, 15, 0.95);
-  border-radius: 20px;
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  color: #fff;
-  font-family: 'Inter', sans-serif;
+  background: rgba(18, 18, 18, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-radius: var(--radio);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
 }
 
 .header {
@@ -16,15 +64,17 @@
 }
 
 .header h1 {
+  font-family: var(--font-display);
   font-size: 2.5rem;
-  color: #d4af37;
+  color: var(--esmeralda);
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .header p {
-  color: #aaa;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
@@ -34,16 +84,20 @@
 }
 
 .pedido-card {
-  background: rgba(30, 30, 30, 0.6);
-  border-radius: 15px;
+  background: var(--bg-card);
+  border-radius: 12px;
   padding: 1.5rem;
-  border-left: 5px solid #d4af37;
-  transition: transform 0.3s ease, background 0.3s ease;
+  border-left: 4px solid var(--esmeralda);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.3s ease,
+              box-shadow 0.3s ease;
 }
 
 .pedido-card:hover {
-  transform: translateY(-5px);
-  background: rgba(40, 40, 40, 0.8);
+  transform: translateY(-4px);
+  background: var(--bg-card-hover);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  border-color: var(--esmeralda-claro);
 }
 
 .pedido-header {
@@ -52,13 +106,13 @@
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .pedido-id {
   font-weight: bold;
   font-size: 1.2rem;
-  color: #d4af37;
+  color: var(--esmeralda);
 }
 
 .info-row {
@@ -68,12 +122,13 @@
 }
 
 .label {
-  color: #888;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .value {
   font-weight: 500;
+  color: var(--text-primary);
 }
 
 .articulos-mini {
@@ -87,13 +142,13 @@
 .total-row {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .totales-desglose {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .subtotal-row {
@@ -102,7 +157,7 @@
 
 .subtotal-row .label,
 .subtotal-row .value {
-  color: rgba(255,255,255,0.6);
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -111,29 +166,29 @@
 }
 
 .iva-row .label {
-  color: rgba(255,255,255,0.5);
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-style: italic;
 }
 
 .iva-row .value.iva {
-  color: rgba(212, 175, 55, 0.7);
+  color: rgba(16, 185, 129, 0.7);
   font-size: 0.85rem;
 }
 
 .total-row {
   padding-top: 0.6rem;
-  border-top: 1px solid rgba(212, 175, 55, 0.3);
+  border-top: 1px solid rgba(16, 185, 129, 0.2);
   margin-top: 0.4rem;
 }
 
 .total {
   font-size: 1.3rem;
-  color: #d4af37;
+  color: var(--esmeralda);
   font-weight: bold;
 }
 
-/* Badges */
+/* Badges con colores esmeralda actualizados | Updated emerald badges */
 .badge {
   padding: 0.4rem 1rem;
   border-radius: 50px;
@@ -142,12 +197,13 @@
   text-transform: uppercase;
 }
 
-.badge-pendiente { background: rgba(212, 175, 55, 0.2); color: #d4af37; border: 1px solid #d4af37; }
-.badge-preparando { background: rgba(52, 152, 219, 0.2); color: #3498db; border: 1px solid #3498db; }
-.badge-enviado { background: rgba(230, 126, 34, 0.2); color: #e67e22; border: 1px solid #e67e22; }
-.badge-entregado { background: rgba(46, 204, 113, 0.2); color: #2ecc71; border: 1px solid #2ecc71; }
-.badge-cancelado { background: rgba(231, 76, 60, 0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+.badge-pendiente { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; }
+.badge-preparando { background: rgba(52, 152, 219, 0.15); color: #3498db; border: 1px solid #3498db; }
+.badge-enviado { background: rgba(230, 126, 34, 0.15); color: #e67e22; border: 1px solid #e67e22; }
+.badge-entregado { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #34d399; }
+.badge-cancelado { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; }
 
+/* Botones con estilo esmeralda | Emerald-style buttons */
 .btn-primary, .btn-secondary {
   padding: 0.8rem 2rem;
   border-radius: 30px;
@@ -157,26 +213,27 @@
   transition: all 0.3s;
   text-transform: uppercase;
   margin: 0.5rem;
+  font-family: var(--font-display);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #d4af37, #b8860b);
-  color: #000;
+  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+  color: #fff;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
   transform: scale(1.05);
 }
 
 .btn-secondary {
   background: transparent;
-  border: 1px solid #d4af37;
-  color: #d4af37;
+  border: 1px solid var(--esmeralda);
+  color: var(--esmeralda);
 }
 
 .btn-secondary:hover {
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(16, 185, 129, 0.1);
 }
 
 .footer-actions {
@@ -191,7 +248,12 @@
 
 .empty-state h3 {
   font-size: 1.8rem;
+  color: var(--text-primary);
   margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
 }
 
 .loading {
@@ -199,11 +261,12 @@
   padding: 3rem;
 }
 
+/* Spinner animado con color esmeralda | Animated spinner with emerald color */
 .spinner {
   width: 50px;
   height: 50px;
-  border: 5px solid rgba(212, 175, 55, 0.1);
-  border-top: 5px solid #d4af37;
+  border: 5px solid rgba(16, 185, 129, 0.1);
+  border-top: 5px solid var(--esmeralda);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -214,17 +277,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Fondo consistente con el resto de la app */
-.mis-pedidos-page {
-  background-image: url('/assets/images/pizzeria-app-core.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  min-height: 100vh;
-  padding: 2rem 1rem;
-}
-
-/* Artículos del pedido */
+/* Artículos del pedido | Order articles */
 .articulos-mini {
   display: flex;
   flex-direction: column;
@@ -241,23 +294,23 @@
 }
 
 .art-cantidad {
-  color: #d4af37;
+  color: var(--esmeralda);
   font-weight: bold;
   min-width: 24px;
 }
 
 .art-nombre {
-  color: #fff;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .art-tamano {
-  color: #aaa;
+  color: var(--text-secondary);
   font-size: 0.8rem;
 }
 
 .art-precio {
-  color: #d4af37;
+  color: var(--esmeralda);
   font-weight: bold;
   margin-left: 0.3rem;
 }

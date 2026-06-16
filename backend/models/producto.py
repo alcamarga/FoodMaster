@@ -16,7 +16,9 @@ class Producto(db.Model):
     precio_base = db.Column('precio', db.Numeric(10, 2), nullable=False)
     
     descripcion = db.Column(db.Text)
-    categoria = db.Column(db.String(50))
+    categoria = db.Column(db.String(50))  # Español: grupo principal (obligatorio) | English: main product group (required)
+    tags = db.Column(db.Text, nullable=True, default='[]')  # Español: etiquetas libres en JSON | English: free-form tags in JSON
+    imagen_url = db.Column(db.String(500), nullable=True, default='')  # Español: URL de la imagen del producto | English: product image URL
     precio_pequena = db.Column(db.Float)
     precio_mediana = db.Column(db.Float)
     precio_grande = db.Column(db.Float)
@@ -30,21 +32,26 @@ class Producto(db.Model):
         }
 
     def serializar(self):
-        # Creamos el diccionario con los nombres exactos que busca Angular
+        import json
+        # Parsear tags desde JSON | Parse tags from JSON
+        tags_lista = []
+        if self.tags:
+            try:
+                tags_lista = json.loads(self.tags)
+            except (json.JSONDecodeError, TypeError):
+                tags_lista = []
+
         return {
             'id': self.id,
             'nombre': self.nombre,
             'descripcion': self.descripcion or "",
             'categoria': self.categoria or "General",
-            # Prioridad al precio_pequena para la vista general del menú
+            'tags': tags_lista,
+            'imagen_url': self.imagen_url or '',
             'precio': float(self.precio_pequena) if self.precio_pequena and self.precio_pequena > 0 else float(self.precio_base or 0),
-            
-            # NUEVO: Mapeo exacto para el modelo Pizza de Angular (precio_1, precio_2, precio_3)
             'precio_1': float(self.precio_pequena or 0),
             'precio_2': float(self.precio_mediana or 0),
             'precio_3': float(self.precio_grande or 0),
-
-            # Mantenemos estos por compatibilidad si otros componentes los usan
             'precio_personal': float(self.precio_pequena or 0),
             'precio_mediano': float(self.precio_mediana or 0),
             'precio_familiar': float(self.precio_grande or 0)

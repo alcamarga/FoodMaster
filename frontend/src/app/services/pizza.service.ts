@@ -8,7 +8,7 @@ import { Pizza } from '../models/pizza.model';
 import { Pedido, CargaPedido } from '../models/pedido.model';
 import { environment } from '../../environments/environment';
 
-const URL_API_PIZZAS: string = `${environment.apiUrl}/pizzas`;
+const URL_API_PRODUCTOS: string = `${environment.apiUrl}/productos`;
 const URL_API_PEDIDOS: string = `${environment.apiUrl}/pedidos`;
 const URL_API_MIS_PEDIDOS: string = `${environment.apiUrl}/pedidos/mis`;
 
@@ -32,7 +32,7 @@ export class PizzaService {
 
   // Obtener catálogo completo de pizzas | Get full pizza catalog
   obtenerCatalogoPizzas(): Observable<Pizza[]> {
-    return this.http.get<Pizza[]>(URL_API_PIZZAS);
+    return this.http.get<Pizza[]>(URL_API_PRODUCTOS);
   }
 
   // Enviar nuevo pedido a la base de datos | Send new order to database
@@ -55,12 +55,12 @@ export class PizzaService {
   }
   // Añade esto al final de tu PizzaService
   eliminarPizza(id: number): Observable<any> {
-    return this.http.delete(`${URL_API_PIZZAS}/${id}`);
+    return this.http.delete(`${URL_API_PRODUCTOS}/${id}`);
   }
   crearPizza(pizza: any): Observable<any> {
-    return this.http.post(URL_API_PIZZAS, pizza);
+    return this.http.post(URL_API_PRODUCTOS, pizza);
   }
   actualizarPizza(id: number, pizza: any): Observable<any> {
-    return this.http.put(`${URL_API_PIZZAS}/${id}`, pizza);
+    return this.http.put(`${URL_API_PRODUCTOS}/${id}`, pizza);
   }
 }

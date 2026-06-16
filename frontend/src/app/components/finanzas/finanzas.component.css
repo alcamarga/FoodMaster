@@ -1,0 +1,198 @@
+/* **Creado por:** Camilo Martinez Galarza (CMG-Solutions) */
+/* **Fecha:** 15 de junio de 2026 */
+/* **Estado:** Desarrollo */
+/* Modificaciones: Al realizar modificaciones significativas, el agente debe mantener o actualizar este encabezado. */
+
+/* Estilos para el módulo financiero | Financial module styles */
+.finanzas-container {
+  padding: 10px 0;
+  min-height: 400px;
+}
+
+/* Tarjetas KPI | KPI cards */
+.kpi-card {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(40, 167, 69, 0.5);
+}
+
+.kpi-value {
+  font-size: 1.6rem;
+  letter-spacing: -0.5px;
+}
+
+/* Contenedor de tabla | Table container */
+.table-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.table-container th {
+  color: #28a745 !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid rgba(40, 167, 69, 0.2) !important;
+}
+
+.table-container td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  vertical-align: middle;
+}
+
+.table-container tr:hover td {
+  background: rgba(40, 167, 69, 0.04);
+}
+
+/* Modal overlay | Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 20px;
+}
+
+/* Contenido del modal | Modal content */
+.modal-content {
+  background: #1a1a2e;
+  border-radius: 20px;
+  border: 1px solid rgba(40, 167, 69, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.modal-finanzas {
+  max-width: 520px;
+}
+
+/* Encabezado del modal | Modal header */
+.modal-finanzas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #28a745;
+}
+
+.btn-cerrar {
+  background: none;
+  border: none;
+  color: #fff8e7;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 8px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.btn-cerrar:hover {
+  opacity: 1;
+}
+
+/* Cuerpo del modal | Modal body */
+.modal-finanzas-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Footer del modal | Modal footer */
+.modal-finanzas-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Resumen del sistema en modal | System summary in modal */
+.resumen-sistema {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(40, 167, 69, 0.15);
+}
+
+/* Formulario de arqueo | Arqueo form */
+.arqueo-form label {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.arqueo-form input:focus,
+.arqueo-form textarea:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+
+/* Vista previa de totales | Total preview */
+.total-preview {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(40, 167, 69, 0.15);
+}
+
+/* Resultado de cierre exitoso | Successful closure result */
+.cierre-exitoso {
+  background: rgba(40, 167, 69, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.resumen-cierre {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.resumen-cierre hr {
+  opacity: 0.3;
+}
+
+/* Scrollbar personalizada | Custom scrollbar */
+.modal-finanzas-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-finanzas-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-finanzas-body::-webkit-scrollbar-thumb {
+  background: rgba(40, 167, 69, 0.3);
+  border-radius: 3px;
+}
+
+/* Responsive | Responsive */
+@media (max-width: 576px) {
+  .finanzas-header .d-flex {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .kpi-value {
+    font-size: 1.3rem;
+  }
+
+  .modal-content {
+    border-radius: 16px;
+  }
+}

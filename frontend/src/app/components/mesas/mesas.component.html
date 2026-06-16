@@ -1,0 +1,354 @@
+<!--
+  **Creado por:** Camilo Martinez Galarza (CMG-Solutions)
+  **Fecha:** 15 de junio de 2026
+  **Estado:** Desarrollo
+  Modificaciones: Al realizar modificaciones significativas, el agente debe mantener o actualizar este encabezado.
+
+  Plantilla del componente de gestión de mesas | Table management component template
+-->
+
+<div class="mesas-container">
+  <!-- Encabezado | Header -->
+  <div class="mesas-header">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold mb-0">
+        <span class="text-warning">🍽️</span> Gestión de Mesas
+      </h2>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success btn-sm fw-bold" (click)="abrirModalNuevaMesa()">
+          ➕ Agregar Mesa
+        </button>
+        <button class="btn btn-outline-warning btn-sm" (click)="recargar()" [disabled]="cargando()">
+          🔄 Recargar
+        </button>
+      </div>
+    </div>
+
+    <!-- Indicador de carga | Loading indicator -->
+    @if (cargando()) {
+      <div class="text-center py-4">
+        <div class="spinner-border text-warning" role="status">
+          <span class="visually-hidden">Cargando mesas...</span>
+        </div>
+        <p class="text-muted mt-2">Cargando mesas...</p>
+      </div>
+    }
+
+    <!-- Mensaje de error | Error message -->
+    @if (error(); as err) {
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        ⚠️ {{ err }}
+        <button type="button" class="btn-close" (click)="error.set(null)"></button>
+      </div>
+    }
+
+    <!-- Mensaje de éxito | Success message -->
+    @if (mensajeExito(); as msg) {
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" (click)="mensajeExito.set(null)"></button>
+      </div>
+    }
+  </div>
+
+  <!-- Grid de mesas | Tables grid -->
+  @if (!cargando()) {
+    <div class="mesas-grid">
+      @for (mesa of mesas(); track mesa.id) {
+        <div class="mesa-card" [ngClass]="claseEstadoMesa(mesa.estado)" (click)="gestionarMesa(mesa)">
+          <div class="mesa-numero">#{{ mesa.numero_mesa }}</div>
+          <div class="mesa-estado">
+            @if (mesa.estado === 'LIBRE') {
+              <span class="badge bg-success">LIBRE 🟢</span>
+            } @else {
+              <span class="badge bg-danger">OCUPADA 🔴</span>
+            }
+          </div>
+          @if (mesa.comanda_activa) {
+            <div class="mesa-total mt-2">
+              <small class="text-muted">Total: ${{ mesa.comanda_activa.total | number:'1.0-0' }}</small>
+            </div>
+          }
+          <!-- Botón de forzar liberación (solo admin) | Force release button (admin only) -->
+          @if (esAdmin() && mesa.estado === 'OCUPADA') {
+            <button class="btn btn-sm btn-outline-danger mt-2 w-100"
+                    (click)="fuerzaLiberacionMesa($event, mesa.id)"
+                    title="Forzar liberación de mesa">
+              🔓 Forzar Liberación
+            </button>
+          }
+        </div>
+      } @empty {
+        <div class="col-12 text-center py-5">
+          <p class="text-muted">No hay mesas registradas. Crea una desde el panel de administración.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Modal de comanda activa | Active comanda modal -->
+@if (mostrarModalComanda && mesaSeleccionada(); as mesa) {
+  <div class="modal-overlay" (click)="cerrarModalComanda()">
+    <div class="modal-content modal-comanda" (click)="$event.stopPropagation()">
+
+      <!-- Encabezado del modal | Modal header -->
+      <div class="modal-comanda-header">
+        <h3 class="mb-0">🍽️ Mesa #{{ mesa.numero_mesa }}</h3>
+        <button class="btn-cerrar" (click)="cerrarModalComanda()">✕</button>
+      </div>
+
+      <!-- Cuerpo del modal | Modal body -->
+      <div class="modal-comanda-body">
+        @if (comandaActiva(); as comanda) {
+          <!-- Comanda activa: mostrar artículos | Active comanda: show items -->
+          <div class="comanda-info mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="badge bg-warning text-dark">Comanda #{{ comanda.id }}</span>
+              <span class="text-muted small">{{ comanda.fecha | date:'short' }}</span>
+            </div>
+          </div>
+
+          @if (comanda.articulos.length > 0) {
+            <div class="comanda-articulos">
+              <table class="table table-sm table-dark table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th class="text-center">Cant.</th>
+                    <th class="text-end">P. Unit.</th>
+                    <th class="text-end">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (art of comanda.articulos; track $index) {
+                    <tr>
+                      <td class="fw-bold">{{ art.nombre }}</td>
+                      <td class="text-center">{{ art.cantidad }}</td>
+                      <td class="text-end text-white-50">${{ art.precio | number:'1.0-0' }}</td>
+                      <td class="text-end text-warning fw-bold">
+                        ${{ (art.precio * art.cantidad) | number:'1.0-0' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+
+              <!-- Totales | Totals -->
+              <div class="comanda-totales mt-3 p-3">
+                <div class="d-flex justify-content-between">
+                  <span>Subtotal</span>
+                  <span>${{ calcularSubtotal(comanda.articulos) | number:'1.0-0' }}</span>
+                </div>
+                <div class="d-flex justify-content-between text-muted small">
+                  <span>IVA (19%)</span>
+                  <span>${{ calcularIVA(comanda.articulos) | number:'1.0-0' }}</span>
+                </div>
+                <div class="d-flex justify-content-between total-final">
+                  <span>TOTAL</span>
+                  <span>${{ comanda.total | number:'1.0-0' }}</span>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="text-center py-4 text-muted">
+              <p>No hay artículos en esta comanda aún.</p>
+            </div>
+          }
+
+          <!-- Botones de acción para comanda activa | Action buttons for active comanda -->
+          <div class="comanda-acciones d-flex gap-2 mt-3">
+            <button class="btn btn-success flex-fill" (click)="abrirModalProducto()">
+              ➕ Agregar Producto
+            </button>
+            <button type="button" class="btn-pago-efectivo" (click)="abrirPagoEfectivo()"
+                    [disabled]="cargandoAccionMesa || totalCuentaReal <= 0">
+                    💰 Pagar en Efectivo
+                  </button>
+                  <button type="button" class="btn-pago-transf" (click)="cobrarYFacturarMesa('Transferencia')"
+                    [disabled]="cargandoAccionMesa || totalCuentaReal <= 0">
+                    📱 Pagar Transferencia
+                  </button>
+            <button class="btn btn-outline-secondary" (click)="cerrarComanda()">
+              🔒 Cerrar
+            </button>
+          </div>
+        } @else {
+          <!-- Mesa libre: mostrar opción de abrir comanda | Free table: show open comanda option -->
+          <div class="text-center py-5">
+            <div class="mb-3" style="font-size: 4rem;">🟢</div>
+            <h4 class="text-muted mb-3">Mesa Libre</h4>
+            <p class="text-muted mb-4">Esta mesa está disponible. Abre una comanda para comenzar a tomar el pedido.</p>
+            <button class="btn btn-warning btn-lg fw-bold" (click)="abrirComanda()">
+              🍽️ Abrir Comanda
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Footer del modal | Modal footer -->
+      <div class="modal-comanda-footer d-flex justify-content-between">
+        <button class="btn btn-sm btn-outline-info" (click)="verHistorial()">
+          📋 Historial
+        </button>
+        <button class="btn btn-sm btn-outline-light" (click)="cerrarModalComanda()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal para agregar producto | Add product modal -->
+@if (mostrarModalProducto) {
+  <div class="modal-overlay" (click)="cerrarModalProducto()">
+    <div class="modal-content modal-producto" (click)="$event.stopPropagation()">
+      <div class="modal-comanda-header">
+        <h4 class="mb-0">➕ Agregar Producto</h4>
+        <button class="btn-cerrar" (click)="cerrarModalProducto()">✕</button>
+      </div>
+
+      <div class="modal-comanda-body">
+        <!-- Buscador de productos | Product search -->
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control bg-dark text-white border-secondary"
+            placeholder="🔍 Buscar producto..."
+            [(ngModel)]="busquedaProducto"
+          />
+        </div>
+
+        <!-- Grid de productos disponibles | Available products grid -->
+        <div class="productos-lista">
+          @for (producto of productosFiltrados; track producto.id) {
+            <div
+              class="producto-item"
+              [ngClass]="{ 'seleccionado': productoSeleccionado?.id === producto.id }"
+              (click)="productoSeleccionado = producto"
+            >
+              <div class="producto-nombre">{{ producto.nombre }}</div>
+              <div class="producto-categoria">{{ producto.categoria }}</div>
+              <div class="producto-precio">
+                ${{ (producto.precio_1 || producto.precio_2 || producto.precio_3 || 0) | number:'1.0-0' }}
+              </div>
+            </div>
+          } @empty {
+            <p class="text-muted text-center py-3">No se encontraron productos.</p>
+          }
+        </div>
+
+        <!-- Selector de cantidad | Quantity selector -->
+        @if (productoSeleccionado) {
+          <div class="cantidad-selector mt-3 p-3">
+            <div class="d-flex align-items-center justify-content-between">
+              <span class="fw-bold">{{ productoSeleccionado.nombre }}</span>
+              <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm btn-outline-secondary" (click)="cantidadProducto = cantidadProducto > 1 ? cantidadProducto - 1 : 1">−</button>
+                <span class="fw-bold mx-2" style="min-width: 30px; text-align: center;">{{ cantidadProducto }}</span>
+                <button class="btn btn-sm btn-outline-secondary" (click)="cantidadProducto = cantidadProducto + 1">+</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-comanda-footer d-flex justify-content-end gap-2">
+        <button class="btn btn-outline-light" (click)="cerrarModalProducto()">Cancelar</button>
+        <button class="btn btn-success fw-bold" (click)="agregarProducto()" [disabled]="!productoSeleccionado">
+          ✅ Agregar a Comanda
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal para crear nueva mesa | New table modal -->
+@if (mostrarModalNuevaMesa) {
+  <div class="modal-overlay" (click)="cerrarModalNuevaMesa()">
+    <div class="modal-content modal-nueva-mesa" (click)="$event.stopPropagation()" style="max-width: 400px;">
+      <div class="modal-comanda-header">
+        <h4 class="mb-0">➕ Nueva Mesa</h4>
+        <button class="btn-cerrar" (click)="cerrarModalNuevaMesa()">✕</button>
+      </div>
+
+      <div class="modal-comanda-body">
+        <div class="mb-3">
+          <label class="form-label text-white small mb-1">Número de Mesa</label>
+          <input
+            type="number"
+            class="form-control bg-dark text-white border-secondary"
+            placeholder="Ej: 5"
+            [(ngModel)]="nuevaMesaNumero"
+            min="1"
+          />
+        </div>
+      </div>
+
+      <div class="modal-comanda-footer d-flex justify-content-end gap-2">
+        <button class="btn btn-outline-light" (click)="cerrarModalNuevaMesa()">Cancelar</button>
+        <button class="btn btn-success fw-bold" (click)="crearMesa()" [disabled]="!nuevaMesaNumero || nuevaMesaNumero < 1 || creandoMesa">
+          @if (creandoMesa) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          ✅ Crear Mesa
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal de historial de comandas | Comanda history modal -->
+@if (mostrarHistorial) {
+  <div class="modal-overlay" (click)="cerrarHistorial()">
+    <div class="modal-content modal-historial" (click)="$event.stopPropagation()">
+      <div class="modal-comanda-header">
+        <h4 class="mb-0">📋 Historial de Comandas</h4>
+        <button class="btn-cerrar" (click)="cerrarHistorial()">✕</button>
+      </div>
+
+      <div class="modal-comanda-body">
+        @if (historialComandas().length > 0) {
+          <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Artículos</th>
+                  <th class="text-end">Total</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (comanda of historialComandas(); track comanda.id) {
+                  <tr>
+                    <td class="fw-bold">#{{ comanda.id }}</td>
+                    <td class="small">{{ comanda.fecha | date:'short' }}</td>
+                    <td>{{ comanda.articulos.length }} items</td>
+                    <td class="text-end text-warning fw-bold">${{ comanda.total | number:'1.0-0' }}</td>
+                    <td>
+                      @if (comanda.estado === 'pagada') {
+                        <span class="badge bg-success">Pagada ✅</span>
+                      } @else if (comanda.estado === 'cerrada') {
+                        <span class="badge bg-secondary">Cerrada 🔒</span>
+                      } @else {
+                        <span class="badge bg-warning text-dark">Abierta 🟡</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="text-muted text-center py-4">Esta mesa no tiene comandas registradas.</p>
+        }
+      </div>
+
+      <div class="modal-comanda-footer d-flex justify-content-end">
+        <button class="btn btn-outline-light" (click)="cerrarHistorial()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

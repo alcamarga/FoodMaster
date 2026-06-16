@@ -1,23 +1,42 @@
   <style>
   .menu-page {
-    /* Usamos filter: brightness para aclarar la imagen sin capas negras */
-    background-image: url('/assets/images/pizzeria-app-core.jpg');
+    background-image: url('/assets/images/fondo_restaruante_logeo.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
     min-height: 100vh;
-    /* Ajusta este valor (1.2 es más luz, 0.8 es menos) */
-    filter: brightness(1.1); 
+    position: relative;
   }
   
-  /* Contenedor para que el contenido NO se aclare con el fondo */
-  .content-wrapper { filter: brightness(1) !important; position: relative; z-index: 1; }
+  .menu-page::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 0;
+  }
+  
+  /* Contenedor para que el contenido NO se vea afectado por el overlay */
+  .content-wrapper {
+    position: relative;
+    z-index: 1;
+  }
 
   .glass-card { 
-    background: rgba(0, 0, 0, 0.75); /* Tarjeta oscura para que el texto blanco resalte */
-    backdrop-filter: blur(10px); 
-    border: 1px solid rgba(255,255,255,0.2); 
-    border-radius: 20px;
+    background: rgba(26, 26, 26, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(16, 185, 129, 0.3);
   }
 </style>
 
@@ -25,7 +44,7 @@
   <div class="content-wrapper">
     <nav class="navbar navbar-dark bg-dark bg-opacity-75 p-3">
       <div class="container d-flex justify-content-between">
-        <span class="navbar-brand fw-bold text-warning">🍕 Pizzería Core</span>
+        <span class="navbar-brand fw-bold text-warning">🍽️ FoodMaster</span>
         <div class="d-flex gap-2">
           @if (usuarioActual?.rol === 'admin') {
             <button class="btn btn-warning btn-sm fw-bold" (click)="irAlDashboard()">📊 Dashboard</button>
@@ -79,9 +98,17 @@
                 <input class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="nuevaPizza.descripcion">
               </div>
               <div class="col-md-3">
-                <label class="form-label text-white small mb-1">Categoría</label>
-                <select class="form-select form-select-sm bg-dark text-white border-secondary" [(ngModel)]="nuevaPizza.categoria">
-                  <option *ngFor="let cat of categoriasPosibles" [value]="cat">{{cat}}</option>
+                <label class="form-label text-white small mb-1">Grupo *</label>
+                <select class="form-select form-select-sm bg-dark text-white border-secondary" [(ngModel)]="nuevaPizza.categoria" (change)="cambiarGrupo()">
+                  @if (cargandoCategorias()) {
+                    <option value="" disabled>Cargando grupos...</option>
+                  } @else if (grupos().length === 0) {
+                    <option value="General">General</option>
+                  } @else {
+                    @for (g of grupos(); track g.id) {
+                      <option [value]="g.nombre">{{ g.nombre }}</option>
+                    }
+                  }
                 </select>
               </div>
               
@@ -96,6 +123,76 @@
               <div class="col-md-3" *ngIf="mostrarCampoPrecioForm(3)">
                 <label class="form-label text-warning small mb-1">{{ getEtiquetaPrecioForm(3) }}</label>
                 <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary" [(ngModel)]="nuevaPizza.precio_3" placeholder="$">
+              </div>
+
+              <!-- Precios personalizados (botón +) | Custom prices (+ button) -->
+              @if (puedeTenerPreciosPersonalizados()) {
+                <div class="col-12 mt-2">
+                  <div class="d-flex flex-wrap gap-2">
+                    @for (pp of preciosPersonalizados; track $index) {
+                      <div class="d-flex align-items-center gap-1 p-1" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 6px;">
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary"
+                               style="width: 100px;" [(ngModel)]="pp.label" placeholder="Nombre tamaño">
+                        <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                               style="width: 80px;" [(ngModel)]="pp.precio" placeholder="$" min="0">
+                        <button class="btn btn-sm btn-outline-danger" (click)="eliminarPrecioPersonalizado($index)">✕</button>
+                      </div>
+                    }
+                    <button class="btn btn-sm btn-outline-info d-flex align-items-center gap-1" (click)="agregarPrecioPersonalizado()">
+                      ➕ Agregar Tamaño
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Carga de imagen con preview | Image upload with preview -->
+              <div class="col-12 mt-3">
+                <label class="form-label text-white small mb-1">🖼️ Imagen del Producto</label>
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                  <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary"
+                         style="max-width: 300px;" accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                         (change)="onImagenSeleccionada($event)" #fileInputMenu>
+                  @if (subiendoImagen) {
+                    <span class="spinner-border spinner-border-sm text-info" role="status"></span>
+                  }
+                  <!-- Español: preview de imagen existente o recién subida | English: existing or newly uploaded image preview -->
+                  @if (imagenPreview) {
+                    <div class="position-relative" style="width: 60px; height: 60px;">
+                      <img [src]="imagenPreview" class="rounded border border-secondary"
+                           style="width: 100%; height: 100%; object-fit: cover;" alt="Preview">
+                    </div>
+                  } @else if (nuevaPizza.imagen_url) {
+                    <div class="position-relative" style="width: 60px; height: 60px;">
+                      <img [src]="nuevaPizza.imagen_url" class="rounded border border-success"
+                           style="width: 100%; height: 100%; object-fit: cover;" alt="Imagen actual">
+                      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
+                            style="font-size: 0.5rem;">✓</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Etiquetas (tags) | Tags -->
+              <div class="col-12 mt-3">
+                <label class="form-label text-white small mb-1">🏷️ Etiquetas</label>
+                <div class="d-flex gap-2 mb-2">
+                  <input class="form-control form-control-sm bg-dark text-white border-secondary" 
+                         [(ngModel)]="nuevoTag" 
+                         (keyup.enter)="agregarTag()" 
+                         placeholder="Ej: Comida Rápida, Vegano, Picante..." 
+                         style="max-width: 300px;">
+                  <button class="btn btn-sm btn-outline-info" (click)="agregarTag()">➕</button>
+                </div>
+                @if (nuevaPizza.tags?.length > 0) {
+                  <div class="d-flex flex-wrap gap-1">
+                    @for (tag of nuevaPizza.tags; track tag) {
+                      <span class="badge bg-info text-dark d-flex align-items-center gap-1" style="font-size: 0.8rem;">
+                        🏷️ {{ tag }}
+                        <button class="btn-close btn-close-white" style="font-size: 0.5rem;" (click)="eliminarTag(tag)"></button>
+                      </span>
+                    }
+                  </div>
+                }
               </div>
 
               <div class="col-md-3 d-flex gap-2 ms-auto mt-3">

@@ -1,4 +1,4 @@
-## Creado por Camilo Martinez - Pizzería Core
+## Creado por Camilo Martinez - FoodMaster
 ## Fecha: 13/05/2026
 
 import sys

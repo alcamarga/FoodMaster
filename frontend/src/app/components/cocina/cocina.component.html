@@ -1,0 +1,151 @@
+<!--
+  **Creado por:** Camilo Martinez Galarza (CMG-Solutions)
+  **Fecha:** 15 de junio de 2026
+  **Estado:** Desarrollo
+
+  Plantilla del módulo de cocina — diseño de alto contraste para entornos de cocina | Kitchen module template — high-contrast design for kitchen environments
+-->
+
+<div class="cocina-container">
+  <!-- Encabezado del dashboard de cocina | Kitchen dashboard header -->
+  <header class="cocina-header">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="cocina-title mb-0">🍳 Panel de Cocina</h1>
+      <button class="btn btn-outline-light btn-sm" (click)="cargarComandas()" [disabled]="cargando()">
+        🔄 Refrescar
+      </button>
+    </div>
+
+    <!-- KPIs de cocina | Kitchen KPIs -->
+    <div class="row g-2 mb-3">
+      <div class="col-4">
+        <div class="kpi-card kpi-pendientes p-2 text-center">
+          <div class="kpi-numero">{{ totalPendientes() }}</div>
+          <div class="kpi-label">Pendientes</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="kpi-card kpi-cocinando p-2 text-center">
+          <div class="kpi-numero">{{ totalEnPreparacion() }}</div>
+          <div class="kpi-label">En Cocina</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="kpi-card kpi-listo p-2 text-center">
+          <div class="kpi-numero">{{ totalListos() }}</div>
+          <div class="kpi-label">Listos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensajes de estado | Status messages -->
+    @if (error(); as err) {
+      <div class="alert alert-danger alert-dismissible fade show py-2 small" role="alert">
+        ⚠️ {{ err }}
+        <button type="button" class="btn-close btn-close-white" (click)="error.set(null)"></button>
+      </div>
+    }
+    @if (mensajeExito(); as msg) {
+      <div class="alert alert-success alert-dismissible fade show py-2 small" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close btn-close-white" (click)="mensajeExito.set(null)"></button>
+      </div>
+    }
+  </header>
+
+  <!-- Indicador de carga | Loading indicator -->
+  @if (cargando()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando comandas...</span>
+      </div>
+      <p class="text-white-50 mt-3 fs-5">Cargando comandas activas...</p>
+    </div>
+  }
+
+  <!-- Grid de tarjetas de comanda | Comanda cards grid -->
+  @if (!cargando()) {
+    @if (comandas().length === 0) {
+      <div class="text-center py-5">
+        <div style="font-size: 5rem;">🍽️</div>
+        <h3 class="text-white mt-3">No hay comandas activas</h3>
+        <p class="text-white-50">La cocina está al día. ¡Buen trabajo!</p>
+      </div>
+    }
+
+    <div class="comandas-grid">
+      @for (comanda of comandas(); track comanda.id) {
+        <div class="comanda-card" [ngClass]="comanda.estado">
+          <!-- Cabecera de tarjeta | Card header -->
+          <div class="card-header-cocina">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="mesa-badge">🍽️ Mesa #{{ comanda.numero_mesa }}</span>
+                <span class="comanda-id ms-2">#{{ comanda.id }}</span>
+              </div>
+              <span class="tiempo-badge" [ngClass]="claseEstadoTiempo(comanda.fecha)">
+                ⏱️ {{ comanda.tiempo_espera || '—' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Estado actual | Current status -->
+          <div class="card-estado text-center py-2">
+            @if (comanda.estado === 'abierta') {
+              <span class="estado-badge estado-nuevo">🆕 NUEVA — Pendiente</span>
+            } @else if (comanda.estado === 'en_preparacion') {
+              <span class="estado-badge estado-cocinando">👨‍🍳 En Preparación</span>
+            } @else if (comanda.estado === 'listo') {
+              <span class="estado-badge estado-listo">✅ Listo para Servir</span>
+            }
+          </div>
+
+          <!-- Lista de artículos | Items list -->
+          <div class="card-articulos">
+            <table class="table table-sm table-dark table-borderless mb-0">
+              <thead>
+                <tr>
+                  <th class="text-white-50 small">Producto</th>
+                  <th class="text-center text-white-50 small">Cant.</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (art of comanda.articulos; track $index) {
+                  <tr>
+                    <td class="fw-bold">{{ art.nombre }}</td>
+                    <td class="text-center fw-bold text-warning">x{{ art.cantidad }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Botones de acción | Action buttons -->
+          <div class="card-acciones p-2">
+            @if (comanda.estado === 'abierta') {
+              <button class="btn btn-cocina btn-preparar w-100" (click)="iniciarPreparacion(comanda.id)">
+                👨‍🍳 Iniciar Preparación
+              </button>
+            } @else if (comanda.estado === 'en_preparacion') {
+              <button class="btn btn-cocina btn-listo w-100" (click)="marcarListo(comanda.id)">
+                ✅ Marcar como Listo
+              </button>
+            } @else if (comanda.estado === 'listo') {
+              <div class="text-center text-success fw-bold small py-1">
+                ✅ Esperando al mesero para servir
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Footer con auto-refresh info | Footer with auto-refresh info -->
+  <footer class="cocina-footer text-center mt-4">
+    <small class="text-white-50">
+      🔄 Actualización automática cada 15s &nbsp;|&nbsp;
+      <a class="text-warning text-decoration-none" (click)="salir()" style="cursor: pointer;">🚪 Salir</a>
+    </small>
+  </footer>
+</div>

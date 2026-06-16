@@ -1,0 +1,166 @@
+/* **Creado por:** Camilo Martinez Galarza (CMG-Solutions) */
+/* **Fecha:** 15 de junio de 2026 */
+/* Estilos de alto contraste para entorno de cocina | High-contrast styles for kitchen environment */
+
+.cocina-container {
+  background: #1a1a1a;
+  min-height: 100vh;
+  padding: 20px;
+  color: #ffffff;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Encabezado | Header */
+.cocina-header {
+  max-width: 1400px;
+  margin: 0 auto 20px;
+}
+
+.cocina-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* KPIs */
+.kpi-card {
+  border-radius: 12px;
+  color: #fff;
+  font-weight: 700;
+}
+.kpi-pendientes { background: linear-gradient(135deg, #dc3545, #bb2d3b); }
+.kpi-cocinando { background: linear-gradient(135deg, #fd7e14, #e06b0a); }
+.kpi-listo { background: linear-gradient(135deg, #198754, #157347); }
+.kpi-numero { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+.kpi-label { font-size: 0.8rem; text-transform: uppercase; opacity: 0.9; }
+
+/* Grid de comandas | Comandas grid */
+.comandas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Tarjeta de comanda | Comanda card */
+.comanda-card {
+  background: #2a2a2a;
+  border: 2px solid #444;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.comanda-card:hover {
+  border-color: #ffd700;
+  box-shadow: 0 4px 24px rgba(255, 215, 0, 0.15);
+}
+
+/* Estados de tarjeta con borde de color | Card states with colored border */
+.comanda-card.abierta { border-left: 6px solid #dc3545; }
+.comanda-card.en_preparacion { border-left: 6px solid #fd7e14; }
+.comanda-card.listo { border-left: 6px solid #198754; }
+
+/* Cabecera | Header */
+.card-header-cocina {
+  background: rgba(0,0,0,0.3);
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.mesa-badge {
+  background: #ffd700;
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+.comanda-id {
+  color: #888;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.tiempo-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.tiempo-badge.normal { background: rgba(255,255,255,0.1); color: #ccc; }
+.tiempo-badge.alerta { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.tiempo-badge.critico {
+  background: rgba(220, 53, 69, 0.3);
+  color: #ff6b6b;
+  animation: parpadeo 1.5s infinite;
+}
+
+/* Estado badge | Status badge */
+.estado-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+}
+.estado-nuevo { background: rgba(220,53,69,0.2); color: #ff6b6b; }
+.estado-cocinando { background: rgba(253,126,20,0.2); color: #ffc107; }
+.estado-listo { background: rgba(25,135,84,0.2); color: #75b798; }
+
+/* Artículos | Items */
+.card-articulos {
+  padding: 8px 16px;
+}
+.card-articulos table th {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 4px 8px;
+}
+.card-articulos table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 1rem;
+}
+
+/* Botones de acción | Action buttons */
+.card-acciones {
+  padding: 8px 16px 12px;
+}
+.btn-cocina {
+  border: none;
+  font-weight: 800;
+  font-size: 1.1rem;
+  padding: 12px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: transform 0.1s, box-shadow 0.2s;
+}
+.btn-cocina:active {
+  transform: scale(0.97);
+}
+.btn-preparar {
+  background: linear-gradient(135deg, #dc3545, #bb2d3b);
+  color: #fff;
+}
+.btn-preparar:hover {
+  box-shadow: 0 4px 16px rgba(220, 53, 69, 0.4);
+}
+.btn-listo {
+  background: linear-gradient(135deg, #198754, #157347);
+  color: #fff;
+}
+.btn-listo:hover {
+  box-shadow: 0 4px 16px rgba(25, 135, 84, 0.4);
+}
+
+/* Footer */
+.cocina-footer {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Animaciones | Animations */
+@keyframes parpadeo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

@@ -3,15 +3,116 @@
 
 import json
 import logging
+from datetime import datetime
+from functools import wraps
 
 from flask import Blueprint, jsonify, request
 
 from models.database import db
 from models.mesa import Mesa
 from models.comanda import Comanda
+from models.usuario import Usuario
 
 mesa_bp = Blueprint('mesa_bp', __name__)
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Decorador de roles | Role decorator
+# ---------------------------------------------------------------------------
+
+JWT_SECRET_MESA = "pizzeria_secret_key_fixed_2026_super_safe"
+
+def roles_requeridos(*roles_permitidos: str):
+    """
+    Decorador que verifica que el token JWT contenga un rol permitido.
+    Uso: @roles_requeridos('admin', 'cocinero')
+    """
+    import jwt as pyjwt
+
+    def decorador(func):
+        @wraps(func)
+        def envoltura(*args, **kwargs):
+            encabezado = request.headers.get('Authorization', '')
+            try:
+                token = encabezado.split()[1]
+                payload = pyjwt.decode(token, JWT_SECRET_MESA, algorithms=['HS256'])
+                rol_usuario = payload.get('rol', '')
+                if rol_usuario not in roles_permitidos:
+                    return jsonify({'status': 'error', 'message': f'Acceso denegado. Se requiere rol: {roles_permitidos}'}), 403
+                return func(*args, **kwargs)
+            except IndexError:
+                return jsonify({'status': 'error', 'message': 'Token requerido en header Authorization'}), 401
+            except pyjwt.ExpiredSignatureError:
+                return jsonify({'status': 'error', 'message': 'Token expirado'}), 401
+            except pyjwt.InvalidTokenError:
+                return jsonify({'status': 'error', 'message': 'Token inválido'}), 401
+        return envoltura
+    return decorador
+
+
+# ---------------------------------------------------------------------------
+# Endpoints públicos de cocina (sin autenticación para facilitar integración)
+# ---------------------------------------------------------------------------
+
+@mesa_bp.route('/comandas/activas', methods=['GET'])
+@roles_requeridos('admin', 'cocinero', 'mesero')
+def obtener_comandas_activas():
+    """
+    GET /api/comandas/activas — Lista todas las comandas activas del flujo de cocina
+    (abierta, en_preparacion, listo), ordenadas por fecha ascendente (más antiguas primero).
+    """
+    try:
+        # Español: mostrar todo el flujo de trabajo de cocina | English: show full kitchen workflow
+        comandas = Comanda.query.filter(
+            Comanda.estado.in_(['abierta', 'en_preparacion', 'listo'])
+        ).order_by(Comanda.fecha.asc()).all()
+        return jsonify({
+            'status': 'success',
+            'comandas': [c.serializar() for c in comandas],
+        }), 200
+    except Exception as e:
+        logger.exception('Error al listar comandas activas: %s', e)
+        return jsonify({'status': 'error', 'message': 'Error al cargar comandas'}), 500
+
+
+@mesa_bp.route('/comandas/<int:comanda_id>/estado', methods=['PUT'])
+@roles_requeridos('admin', 'cocinero')
+def actualizar_estado_comanda(comanda_id: int):
+    """
+    PUT /api/comandas/<id>/estado — Actualiza el estado de una comanda.
+    Body: { "estado": "en_preparacion" | "listo" }
+    """
+    try:
+        datos = request.get_json() or {}
+        nuevo_estado = datos.get('estado', '').strip()
+
+        estados_validos = {'en_preparacion', 'listo'}
+        if nuevo_estado not in estados_validos:
+            return jsonify({
+                'status': 'error',
+                'message': f'Estado inválido: "{nuevo_estado}". Use: {estados_validos}'
+            }), 400
+
+        comanda = Comanda.query.get(comanda_id)
+        if not comanda:
+            return jsonify({'status': 'error', 'message': f'Comanda #{comanda_id} no encontrada'}), 404
+
+        estado_anterior = comanda.estado
+        comanda.estado = nuevo_estado
+        db.session.commit()
+
+        logger.info('🍳 Comanda #%s: %s → %s', comanda_id, estado_anterior, nuevo_estado)
+        return jsonify({
+            'status': 'success',
+            'message': f'Comanda #{comanda_id} marcada como "{nuevo_estado}"',
+            'comanda': comanda.serializar(),
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        logger.exception('Error al actualizar estado de comanda %s: %s', comanda_id, e)
+        return jsonify({'status': 'error', 'message': 'Error al actualizar estado'}), 500
 
 
 # ---------------------------------------------------------------------------

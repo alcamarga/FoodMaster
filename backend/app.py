@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from config import Config
 from models.database import db
@@ -11,15 +11,25 @@ from models.producto import Producto
 from models.receta import Receta
 from models.mesa import Mesa
 from models.comanda import Comanda
+from models.grupo_producto import GrupoProducto
 
 # 2. IMPORTAR RUTAS
 from routes.pedido_routes import pedidos_blueprint
 from routes.admin_routes import admin_bp
 from routes.auth_routes import auth_bp
 from routes.mesa_routes import mesa_bp
+from routes.grupo_producto_routes import grupo_producto_bp, verificar_esquema_grupo, sembrar_grupos
+from routes.caja_routes import caja_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Español: servir archivos estáticos (imágenes subidas) | English: serve static files (uploaded images)
+STATIC_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+
+@app.route('/static/uploads/<path:filename>')
+def servir_imagen(filename):
+    return send_from_directory(os.path.join(STATIC_FOLDER, 'uploads'), filename)
 
 # Configuración de CORS temporalmente abierta para validación en Azure
 CORS(app, resources={r"/api/*": {
@@ -36,6 +46,8 @@ app.register_blueprint(pedidos_blueprint, url_prefix='/api')
 app.register_blueprint(admin_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api/auth')
 app.register_blueprint(mesa_bp, url_prefix='/api')
+app.register_blueprint(grupo_producto_bp, url_prefix='/api')
+app.register_blueprint(caja_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
@@ -50,7 +62,11 @@ def trigger_seed():
         # 1. Crear tablas si no existen
         db.create_all()
         
-        # 2. Crear Admin si no existe
+        # 2. Verificar esquema y sembrar grupos por defecto | Verify schema and seed default groups
+        verificar_esquema_grupo()
+        sembrar_grupos()
+        
+        # 3. Crear Admin si no existe
         admin_email = 'admin@pizzeria.com'
         if not Usuario.query.filter_by(email=admin_email).first():
             admin = Usuario(
@@ -98,5 +114,11 @@ if __name__ == '__main__':
             admin_existente.contrasena_hash = generate_password_hash('admin123')
             db.session.commit()
             print("✅ [DB] Usuario administrador verificado.")
+
+        # Verificar esquema y migrar columnas faltantes | Verify schema and migrate missing columns
+        verificar_esquema_grupo()
+
+        # Sembrar grupos por defecto | Seed default groups
+        sembrar_grupos()
 
     app.run(debug=True, host='0.0.0.0', port=5000)

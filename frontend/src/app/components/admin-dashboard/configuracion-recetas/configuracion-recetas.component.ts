@@ -5,7 +5,9 @@ import { RecipeService, RecetaItem } from '../../../services/recipe.service';
 import { PizzaService } from '../../../services/pizza.service';
 import { InsumosService, Insumo } from '../../../services/insumos';
 import { AuthService } from '../../../services/auth.service';
+import { GrupoProductoService } from '../../../services/grupo_producto.service';
 import { Pizza } from '../../../models/pizza.model';
+import { IGrupoProducto } from '../../../models/grupo_producto.model';
 
 @Component({
   selector: 'app-configuracion-recetas',
@@ -19,10 +21,12 @@ export class ConfiguracionRecetasComponent implements OnInit {
   private pizzaService = inject(PizzaService);
   private insumosService = inject(InsumosService);
   private authService = inject(AuthService);
+  private grupoProductoService = inject(GrupoProductoService);
 
   // Estados
   pizzas = signal<Pizza[]>([]);
   insumosDisponibles = signal<Insumo[]>([]);
+  grupos = signal<IGrupoProducto[]>([]);
   cargando = signal(false);
   
   pizzaSeleccionadaId: number | null = null;
@@ -47,6 +51,7 @@ export class ConfiguracionRecetasComponent implements OnInit {
   cargarCatalogos(): void {
     this.pizzaService.obtenerCatalogoPizzas().subscribe(res => this.pizzas.set(res));
     this.insumosService.getInsumos().subscribe(res => this.insumosDisponibles.set(res));
+    this.grupoProductoService.obtenerGrupos().subscribe(res => this.grupos.set(res));
   }
 
   seleccionarPizza(id: number): void {
@@ -57,24 +62,28 @@ export class ConfiguracionRecetasComponent implements OnInit {
     
     // Generamos los tamaños dinámicamente según la categoría y precios definidos
     const cat = pizza.categoria || 'Pizza';
-    const etiquetasPosibles = this.obtenerEtiquetasPorCategoria(cat);
+    const etiquetasPosibles = this.obtenerEtiquetasPorGrupo(cat);
     
     this.tamanos = [];
-    if (pizza.precio_1 && pizza.precio_1 > 0) this.tamanos.push(etiquetasPosibles[0]);
-    if (pizza.precio_2 && pizza.precio_2 > 0) this.tamanos.push(etiquetasPosibles[1]);
-    if (pizza.precio_3 && pizza.precio_3 > 0) this.tamanos.push(etiquetasPosibles[2]);
+    if (pizza.precio_1 && pizza.precio_1 > 0 && etiquetasPosibles[0]) this.tamanos.push(etiquetasPosibles[0]);
+    if (pizza.precio_2 && pizza.precio_2 > 0 && etiquetasPosibles[1]) this.tamanos.push(etiquetasPosibles[1]);
+    if (pizza.precio_3 && pizza.precio_3 > 0 && etiquetasPosibles[2]) this.tamanos.push(etiquetasPosibles[2]);
 
-    // Si no hay precios definidos pero es "Otros" o similar, al menos uno
+    // Si no hay precios definidos, al menos uno
     if (this.tamanos.length === 0) this.tamanos = [etiquetasPosibles[0] || 'Único'];
 
     this.tamanoSeleccionado = this.tamanos[0];
     this.cargarReceta();
   }
 
-  private obtenerEtiquetasPorCategoria(cat: string): string[] {
-    if (cat === 'Pizza') return ['Personal', 'Mediana', 'Familiar'];
-    if (cat === 'Gaseosa') return ['Personal', 'Litro', 'Familiar'];
-    if (cat === 'Lasaña') return ['Pequeña', 'Grande'];
+  private obtenerEtiquetasPorGrupo(nombreGrupo: string): string[] {
+    const grupo = this.grupos().find((g) => g.nombre === nombreGrupo);
+    if (grupo) {
+      const etiquetas = [grupo.etiqueta_1];
+      if (grupo.etiqueta_2) etiquetas.push(grupo.etiqueta_2);
+      if (grupo.etiqueta_3) etiquetas.push(grupo.etiqueta_3);
+      return etiquetas;
+    }
     return ['Único'];
   }
 

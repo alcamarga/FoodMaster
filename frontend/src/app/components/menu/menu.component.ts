@@ -2,10 +2,14 @@ import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { PizzaService } from '../../services/pizza.service';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
+import { GrupoProductoService } from '../../services/grupo_producto.service';
 import { Pizza } from '../../models/pizza.model';
+import { IGrupoProducto } from '../../models/grupo_producto.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-menu',
@@ -20,9 +24,12 @@ export class MenuComponent implements OnInit {
   router = inject(Router);
   route = inject(ActivatedRoute);
   cartService = inject(CartService);
+  grupoProductoService = inject(GrupoProductoService);
 
   pizzas = signal<Pizza[]>([]);
+  grupos = signal<IGrupoProducto[]>([]);
   cargando = signal(true);
+  cargandoCategorias = signal(true);
   error = signal<string | null>(null);
   estaAutenticado = computed(() => this.auth.estaAutenticado());
   usuarioActual = this.auth.obtenerUsuarioActual();
@@ -33,6 +40,7 @@ export class MenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarMenu();
+    this.cargarGrupos();
     this.manejarIntencionCompra();
   }
 
@@ -57,6 +65,36 @@ export class MenuComponent implements OnInit {
         }
       }
     });
+  }
+
+  // Cargar grupos dinámicos desde el backend | Load dynamic groups from backend
+  cargarGrupos(): void {
+    this.cargandoCategorias.set(true);
+    this.grupoProductoService.obtenerGrupos().subscribe({
+      next: (grupos) => {
+        this.grupos.set(grupos);
+        this.cargandoCategorias.set(false);
+        if (!this.nuevaPizza.categoria && grupos.length > 0) {
+          this.nuevaPizza.categoria = grupos[0].nombre;
+        }
+      },
+      error: (err) => {
+        console.error('[Menu] Error al cargar grupos:', err);
+        this.cargandoCategorias.set(false);
+      },
+    });
+  }
+
+  // Obtener etiquetas de precio para un grupo desde los datos dinámicos | Get price labels for a group from dynamic data
+  getEtiquetasPrecio(nombreGrupo: string): string[] {
+    const grupo = this.grupos().find((g) => g.nombre === nombreGrupo);
+    if (grupo) {
+      const etiquetas = [grupo.etiqueta_1];
+      if (grupo.etiqueta_2) etiquetas.push(grupo.etiqueta_2);
+      if (grupo.etiqueta_3) etiquetas.push(grupo.etiqueta_3);
+      return etiquetas;
+    }
+    return ['Único'];
   }
 
   cargarMenu(): void {
@@ -94,7 +132,7 @@ export class MenuComponent implements OnInit {
     this.cartService.agregarAlCarrito(pizza, tamanoLabel, precio);
 
     // Mensaje global
-    this.mensajeExito.set(`¡${pizza.nombre} (${tamanoLabel}) agregada! 🍕`);
+    this.mensajeExito.set(`¡${pizza.nombre} (${tamanoLabel}) agregado! 🍽️`);
 
     // Resetear estados después de 1.5 segundos
     setTimeout(() => {
@@ -104,7 +142,20 @@ export class MenuComponent implements OnInit {
   }
 
 
-  // --- NUEVAS FUNCIONES PARA EL ADMIN ---
+  // --- FUNCIONES PARA TAGS ---
+  agregarTag(): void {
+    const tag = this.nuevoTag.trim().toLowerCase();
+    if (tag && !this.nuevaPizza.tags.includes(tag)) {
+      this.nuevaPizza.tags = [...this.nuevaPizza.tags, tag];
+      this.nuevoTag = '';
+    }
+  }
+
+  eliminarTag(tag: string): void {
+    this.nuevaPizza.tags = this.nuevaPizza.tags.filter((t: string) => t !== tag);
+  }
+
+  // --- FUNCIONES PARA EL ADMIN ---
   irAlDashboard(): void {
     this.router.navigate(['/admin/dashboard']);
   }
@@ -112,33 +163,77 @@ export class MenuComponent implements OnInit {
   // Control del formulario de edición
   mostrarFormulario = false;
   pizzaEnEdicionId: number | null = null;
-  categoriasPosibles = ['Pizza', 'Gaseosa', 'Lasaña', 'Otros'];
+
+  // Nombres de grupos dinámicos desde el backend | Dynamic group names from backend
+  get gruposPosibles(): string[] {
+    return this.grupos().map((g) => g.nombre);
+  }
+
+  // Español: inyección para subida de imágenes | English: injection for image upload
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+
   nuevaPizza: any = {
     nombre: '',
     descripcion: '',
-    categoria: 'Pizza',
+    categoria: '',
+    tags: [],
+    imagen_url: '',
     precio_1: 0,
     precio_2: 0,
     precio_3: 0
   };
+  nuevoTag = '';
+  preciosPersonalizados: { label: string; precio: number }[] = [];
+  // Español: estado de subida de imagen | English: image upload state
+  imagenPreview: string | ArrayBuffer | null = null;
+  subiendoImagen = false;
 
-  // Helpers Categoria
-  getEtiquetasPrecio(cat: string): string[] {
-    if (cat === 'Pizza') return ['Personal', 'Mediana', 'Familiar'];
-    if (cat === 'Gaseosa') return ['Personal', 'Litro', 'Familiar'];
-    if (cat === 'Lasaña') return ['Pequeña', 'Grande'];
-    return ['Único'];
+  // Español: reglas de visualización por grupo (anulan etiquetas de BD) | English: display rules per group (override DB labels)
+  private readonly REGLAS_VISUALIZACION: Record<string, { campos: number; etiquetas: string[]; permitirPersonalizados: boolean }> = {
+    'Entradas':  { campos: 1, etiquetas: ['Precio Único'],              permitirPersonalizados: true },
+    'Bebidas':   { campos: 1, etiquetas: ['Precio Único'],              permitirPersonalizados: true },
+    'Otros':     { campos: 1, etiquetas: ['Precio Único'],              permitirPersonalizados: true },
+    'Platos Fuertes': { campos: 1, etiquetas: ['Individual'],           permitirPersonalizados: true },
+    'Postres':   { campos: 1, etiquetas: ['Individual'],                permitirPersonalizados: true },
+    'Licores':   { campos: 2, etiquetas: ['Individual', 'Botella'],     permitirPersonalizados: true },
+    'Lasaña':    { campos: 2, etiquetas: ['Pequeña', 'Grande'],         permitirPersonalizados: false },
+  };
+
+  // Obtener regla de visualización para el grupo actual | Get display rule for current group
+  private obtenerReglaVisualizacion(): { campos: number; etiquetas: string[]; permitirPersonalizados: boolean } | null {
+    const nombreGrupo = this.nuevaPizza.categoria;
+    if (!nombreGrupo) return null;
+    const regla = this.REGLAS_VISUALIZACION[nombreGrupo];
+    if (regla) return regla;
+
+    // Si no hay regla específica, usar las etiquetas de la BD | If no specific rule, use DB labels
+    const grupo = this.grupos().find((g) => g.nombre === nombreGrupo);
+    if (!grupo) return null;
+    const etiquetas = [grupo.etiqueta_1];
+    if (grupo.etiqueta_2) etiquetas.push(grupo.etiqueta_2);
+    if (grupo.etiqueta_3) etiquetas.push(grupo.etiqueta_3);
+    return {
+      campos: etiquetas.length,
+      etiquetas,
+      permitirPersonalizados: etiquetas.length <= 2,
+    };
   }
 
   getEtiquetaPrecioForm(index: number): string {
-    return this.getEtiquetasPrecio(this.nuevaPizza.categoria)[index - 1] || '';
+    const regla = this.obtenerReglaVisualizacion();
+    if (regla) {
+      return regla.etiquetas[index - 1] || '';
+    }
+    return '';
   }
 
   mostrarCampoPrecioForm(index: number): boolean {
-    const cat = this.nuevaPizza.categoria;
-    if (cat === 'Otros') return index === 1;
-    if (cat === 'Lasaña') return index <= 2;
-    return true;
+    const regla = this.obtenerReglaVisualizacion();
+    if (regla) {
+      return index <= regla.campos;
+    }
+    return index === 1;
   }
 
   toggleFormulario(): void {
@@ -146,14 +241,56 @@ export class MenuComponent implements OnInit {
     if (!this.mostrarFormulario) this.pizzaEnEdicionId = null;
   }
 
+  // Español: seleccionar imagen y mostrar preview | English: select image and show preview
+  onImagenSeleccionada(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const archivo = input.files[0];
+    const tiposPermitidos = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!tiposPermitidos.includes(archivo.type)) {
+      alert('Tipo de archivo no permitido. Usa PNG, JPG, GIF o WebP.');
+      return;
+    }
+
+    // Español: mostrar preview local | English: show local preview
+    const lector = new FileReader();
+    lector.onload = () => {
+      this.imagenPreview = lector.result;
+    };
+    lector.readAsDataURL(archivo);
+
+    // Español: subir al servidor | English: upload to server
+    this.subiendoImagen = true;
+    const formData = new FormData();
+    formData.append('file', archivo);
+
+    this.http.post<{ status: string; url: string }>(`${this.apiUrl}/upload`, formData).subscribe({
+      next: (respuesta) => {
+        if (respuesta.status === 'success') {
+          this.nuevaPizza.imagen_url = respuesta.url;
+        }
+        this.subiendoImagen = false;
+      },
+      error: (err) => {
+        console.error('[Menu] Error al subir imagen:', err);
+        this.subiendoImagen = false;
+        alert('Error al subir la imagen. Intenta de nuevo.');
+      },
+    });
+  }
+
   modificarPizza(id: number): void {
     const pizza = this.pizzas().find(p => p.id === id);
     if (pizza) {
       this.pizzaEnEdicionId = pizza.id;
+      this.imagenPreview = null;
       this.nuevaPizza = {
         nombre: pizza.nombre,
         descripcion: pizza.descripcion,
-        categoria: pizza.categoria || 'Pizza',
+        categoria: pizza.categoria || this.gruposPosibles[0] || 'General',
+        tags: pizza.tags || [],
+        imagen_url: pizza.imagen || '',
         precio_1: pizza.precio_1,
         precio_2: pizza.precio_2,
         precio_3: pizza.precio_3
@@ -164,21 +301,60 @@ export class MenuComponent implements OnInit {
 
   guardarPizza(): void {
     if (this.pizzaEnEdicionId) {
-      this.pizzaService.actualizarPizza(this.pizzaEnEdicionId, this.nuevaPizza).subscribe({
+      // Español: enviar solo los campos de precio visibles | English: send only visible price fields
+      const payload = { ...this.nuevaPizza };
+      if (!this.mostrarCampoPrecioForm(1)) payload.precio_1 = undefined;
+      if (!this.mostrarCampoPrecioForm(2)) payload.precio_2 = undefined;
+      if (!this.mostrarCampoPrecioForm(3)) payload.precio_3 = undefined;
+      // Español: incluir precios personalizados si el grupo lo permite | English: include custom prices if group allows
+      if (this.puedeTenerPreciosPersonalizados() && this.preciosPersonalizados.length > 0) {
+        const disponibles = [1, 2, 3].filter(i => !payload[`precio_${i}`] || payload[`precio_${i}`] === 0);
+        for (let i = 0; i < this.preciosPersonalizados.length && i < disponibles.length; i++) {
+          payload[`precio_${disponibles[i]}`] = this.preciosPersonalizados[i].precio;
+        }
+      }
+
+      this.pizzaService.actualizarPizza(this.pizzaEnEdicionId, payload).subscribe({
         next: () => {
           this.cargarMenu();
           this.cancelarFormulario();
         },
         error: (err) => {
-          console.error('Error al actualizar la pizza:', err);
-          alert('No se pudo actualizar la pizza.');
+          console.error('Error al actualizar producto:', err);
+          alert('No se pudo actualizar el producto.');
         }
       });
     }
   }
 
+  // Agregar un campo de precio personalizado | Add a custom price field
+  agregarPrecioPersonalizado(): void {
+    this.preciosPersonalizados.push({ label: '', precio: 0 });
+  }
+
+  eliminarPrecioPersonalizado(index: number): void {
+    this.preciosPersonalizados.splice(index, 1);
+  }
+
+  // Español: limpiar precios personalizados al cambiar de grupo | English: clear custom prices when switching groups
+  cambiarGrupo(): void {
+    this.preciosPersonalizados = [];
+  }
+
+  puedeTenerPreciosPersonalizados(): boolean {
+    const regla = this.obtenerReglaVisualizacion();
+    if (regla) {
+      return regla.permitirPersonalizados;
+    }
+    return false;
+  }
+
   cancelarFormulario(): void {
-    this.nuevaPizza = { nombre: '', descripcion: '', categoria: 'Pizza', precio_1: 0, precio_2: 0, precio_3: 0 };
+    const grupos = this.grupos();
+    const fallback = grupos.length > 0 ? grupos[0].nombre : 'General';
+    this.nuevaPizza = { nombre: '', descripcion: '', categoria: fallback, tags: [], imagen_url: '', precio_1: 0, precio_2: 0, precio_3: 0 };
+    this.preciosPersonalizados = [];
+    this.imagenPreview = null;
     this.pizzaEnEdicionId = null;
     this.mostrarFormulario = false;
   }

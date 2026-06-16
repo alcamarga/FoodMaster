@@ -1,22 +1,35 @@
-> **Autor:** Camilo Martinez
-> **Documento:** Roadmap de Tareas
+🚀 Roadmap y Registro de Tareas (Backlog)
+Creado por: Camilo Martinez Galarza (CMG-Solutions)
+Fecha: 15 de junio de 2026
+Estado: En Ejecución
+Modificaciones: Al realizar modificaciones significativas, el agente debe mantener o actualizar este encabezado.
 
-# 🚀 Registro de Tareas (Backlog)
+📜 Protocolo de Seguimiento
+Lead Architect: Camilo Martinez Galarza
 
-## 🟢 Finalizado (Done)
-- [x] Configuración inicial del entorno Linux.
-- [x] Estructura base del Frontend en Angular.
-- [x] Corrección de errores de Zone.js y Polyfills.
-- [x] Creación del Sistema de Reglas (.cursor-rules).
-- [x] Conexión HttpClient entre Frontend y Backend (`ApiHealthService`, proxy `/api` → Flask :5000, `environment.apiUrl`).
-- [x] Configuración de CORS en el servidor Python (`flask-cors` + cabeceras en `backend/app.py`; origen Angular `:4200` OK en dev).
+Asistente de Arquitectura: Gemini/Cami
 
-## 🟡 En Progreso (Doing)
-- _(vacío)_
+"La ejecución sin registro es caos. Cada hito debe estar documentado en este tablero."
 
-## 🔴 Pendiente (To Do)
-- [ ] Implementar actualización de estados de pedidos.
-- [ ] Pruebas de integración final.
+🟢 Finalizado (Done)
+[x] Configuración inicial del entorno Linux.
 
----
-**Lead Developer:** Camilo
+[x] Estructura base del Frontend en Angular.
+
+[x] Corrección de errores de Zone.js y Polyfills.
+
+[x] Creación del Sistema de Reglas (.cursor-rules).
+
+[x] Conexión HttpClient entre Frontend y Backend.
+
+[x] Configuración de CORS en el servidor Python.
+
+🟡 En Progreso (Doing)
+[ ] (Espacio reservado para tareas activas)
+
+🔴 Pendiente (To Do)
+[ ] Implementar actualización de estados de pedidos.
+
+[ ] Pruebas de integración final.
+
+"Ejecución impecable. 🚀"

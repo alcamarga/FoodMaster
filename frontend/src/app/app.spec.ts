@@ -13,7 +13,7 @@ describe('AppComponent', () => {
           provide: ApiHealthService,
           useValue: {
             obtenerSalud: () =>
-              of({ status: 'ok', service: 'Pizzeria App Core API' }),
+              of({ status: 'ok', service: 'FoodMaster API' }),
           },
         },
       ],
@@ -26,11 +26,11 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render pizzeria title', async () => {
+  it('should render FoodMaster title', async () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Pizzería Core');
+    expect(compiled.querySelector('h1')?.textContent).toContain('FoodMaster');
   });
 });

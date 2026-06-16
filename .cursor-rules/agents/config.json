@@ -1,45 +1,54 @@
--{
-    "metadata": {
-      "agent_id": "Pizzeria-Orchestrator-V1",
-      "author": "Milo [Camilo Martinez]",
-      "project": "Pizzeria-Core-Global",
-      "license": "Personal-Proprietary",
-      "date": "2026-04-18"
+{
+  "metadata": {
+    "agent_id": "FoodMaster-Orchestrator-V2",
+    "author": "Camilo Martinez Galarza (CMG-Solutions)",
+    "project": "FoodMaster-Global",
+    "license": "Personal-Proprietary",
+    "last_updated": "2026-06-15"
+  },
+  "project_name": "FoodMaster",
+  "agents": [
+    {
+      "id": "logic_master",
+      "name": "Agente de Lógica y Sincronización",
+      "role": "Especialista en TypeScript (Angular) y Python (Flask)",
+      "priority_files": [
+        "frontend/src/app/services/",
+        "frontend/src/app/components/",
+        "backend/app.py",
+        "backend/models/"
+      ],
+      "rules": [
+        "Aplicar formato espejo (Español | English) en todos los comentarios.",
+        "Nombres de funciones en español: camelCase (ej: cerrarSesion).",
+        "Sincronización estricta: Cada cambio en Modelos debe actualizar DTOs en ambos lados (Backend/Frontend)."
+      ]
     },
-    "project_name": "Pizzería Core",
-    "agents": [
-      {
-        "id": "logic_master",
-        "name": "Agente de Lógica y Sincronización",
-        "role": "Especialista en TypeScript y Angular",
-        "priority_files": [
-          "frontend/src/app/services/",
-          "frontend/src/app/components/",
-          "frontend/src/app/interceptors/"
-        ],
-        "rules": [
-          "Mantener nombres de funciones en español (ej: cerrarSesion, obtenerPizzas).",
-          "Verificar que cada cambio en un Service se refleje en los Components que lo inyectan.",
-          "Asegurar que los errores TS2339 se resuelvan sincronizando el archivo .ts con el .html."
-        ]
-      },
-      {
-        "id": "inventory_guard",
-        "name": "InventoryGuard",
-        "role": "Gestor de Materias Primas e Insumos",
-        "priority_files": [
-          "frontend/src/app/models/insumo.model.ts",
-          "backend/models/inventario.py"
-        ]
-      },
-      {
-        "id": "billing_scribe",
-        "name": "BillingScribe",
-        "role": "Contabilidad y Procesamiento de Pagos",
-        "priority_files": [
-          "frontend/src/app/services/factura.service.ts",
-          "backend/routes/pagos.py"
-        ]
-      }
-    ]
-  }
+    {
+      "id": "inventory_guard",
+      "name": "InventoryGuard",
+      "role": "Gestor de Materias Primas e Insumos",
+      "priority_files": [
+        "frontend/src/app/models/insumo.model.ts",
+        "backend/models/inventario.py"
+      ],
+      "rules": [
+        "Mantener integridad referencial entre inventario y comandas.",
+        "Validar stock antes de confirmar cualquier pedido."
+      ]
+    },
+    {
+      "id": "billing_scribe",
+      "name": "BillingScribe",
+      "role": "Contabilidad y Procesamiento de Pagos",
+      "priority_files": [
+        "frontend/src/app/services/factura.service.ts",
+        "backend/routes/pagos.py"
+      ],
+      "rules": [
+        "Cero hardcoding de claves de pasarelas de pago.",
+        "Logs de transacciones sin datos sensibles."
+      ]
+    }
+  ]
+}

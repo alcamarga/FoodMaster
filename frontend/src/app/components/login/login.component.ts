@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit {
         const usuario = respuesta.usuario;
         console.log('[LoginComponent] Login exitoso. Usuario:', usuario.nombre, 'Rol:', usuario.rol);
         
-        if (usuario.rol === 'admin' || usuario.rol === 'cocinero' || usuario.email === 'admin@pizzeria.com') {
+        if (usuario.rol === 'admin' || usuario.rol === 'cocinero' || usuario.email === 'admin@foodmaster.com') {
           console.log('[LoginComponent] Login exitoso. Refrescando aplicación hacia el Dashboard...');
           window.location.href = '/admin/dashboard';
         } else {
