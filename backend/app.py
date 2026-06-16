@@ -31,9 +31,14 @@ STATIC_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static
 def servir_imagen(filename):
     return send_from_directory(os.path.join(STATIC_FOLDER, 'uploads'), filename)
 
-# Configuración de CORS temporalmente abierta para validación en Azure
+# Español: configuración de CORS — orígenes desde Config (por defecto '*' para Azure) | English: CORS config — origins from Config (default '*' for Azure)
+cors_origins = app.config.get('CORS_ORIGINS', '*')
+if cors_origins != '*':
+    # Español: si es una lista separada por comas, conviértela | English: if comma-separated list, parse it
+    cors_origins = [o.strip() for o in cors_origins.split(',')]
+
 CORS(app, resources={r"/api/*": {
-    "origins": "*",
+    "origins": cors_origins,
     "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
     "expose_headers": ["Content-Type", "Authorization"]

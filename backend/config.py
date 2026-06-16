@@ -14,3 +14,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Cambiamos la clave secreta por una más genérica y segura
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'foodmaster-clave-segura-2026'
+
+    # Español: orígenes CORS — por defecto '*' para Azure, específicos para dev local | English: CORS origins — default '*' for Azure, specific for local dev
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*')

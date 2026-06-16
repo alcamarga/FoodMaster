@@ -72,6 +72,60 @@ def gestionar_usuarios():
         'rol': u.rol
     } for u in usuarios])
 
+# Español: ruta individual de usuario (editar/eliminar) | English: individual user route (update/delete)
+@admin_bp.route('/usuarios/<int:usuario_id>', methods=['PUT', 'DELETE', 'OPTIONS'])
+@cross_origin()
+def gestionar_usuario_individual(usuario_id):
+    if flask_request.method == 'OPTIONS':
+        return jsonify({}), 200
+
+    usuario = Usuario.query.get(usuario_id)
+    if not usuario:
+        return jsonify({'error': 'Usuario no encontrado'}), 404
+
+    # PUT: Actualizar empleado
+    if flask_request.method == 'PUT':
+        try:
+            datos = flask_request.get_json()
+            if not datos:
+                return jsonify({'error': 'Datos inválidos'}), 400
+
+            usuario.nombre = datos.get('nombre', usuario.nombre)
+            usuario.email = datos.get('email', usuario.email)
+            usuario.rol = datos.get('rol', usuario.rol)
+
+            pass_plana = datos.get('password')
+            if pass_plana:
+                usuario.contrasena_hash = generate_password_hash(pass_plana)
+
+            db.session.commit()
+            logger.info('👤 Usuario #%s actualizado: %s (%s)', usuario.id, usuario.nombre, usuario.rol)
+            return jsonify({
+                'mensaje': 'Empleado actualizado con éxito',
+                'usuario': {
+                    'id': usuario.id,
+                    'nombre': usuario.nombre,
+                    'email': usuario.email,
+                    'rol': usuario.rol
+                }
+            }), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.exception('Error al actualizar usuario #%s: %s', usuario_id, e)
+            return jsonify({'error': str(e)}), 500
+
+    # DELETE: Eliminar empleado
+    if flask_request.method == 'DELETE':
+        try:
+            db.session.delete(usuario)
+            db.session.commit()
+            logger.info('👤 Usuario #%s eliminado: %s', usuario.id, usuario.nombre)
+            return jsonify({'mensaje': 'Empleado eliminado correctamente'}), 200
+        except Exception as e:
+            db.session.rollback()
+            logger.exception('Error al eliminar usuario #%s: %s', usuario_id, e)
+            return jsonify({'error': str(e)}), 500
+
 # --- RUTAS DE INSUMOS ---
 @admin_bp.route('/insumos', methods=['GET', 'POST', 'OPTIONS'])
 @admin_bp.route('/insumos/<int:insumo_id>', methods=['PUT', 'DELETE', 'OPTIONS'])
