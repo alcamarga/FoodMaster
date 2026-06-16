@@ -10,6 +10,9 @@ class Pedido(db.Model):
     estado = db.Column(db.String(50), default='pendiente')
     articulos_json = db.Column(db.Text, nullable=True)  # Guardamos los productos como JSON
 
+    # Español: tipo de pedido (mesa/domicilio) | English: order type (table/delivery)
+    tipo = db.Column(db.String(20), nullable=True, default=None)               # 'mesa' | 'domicilio'
+
     # Español: campos para delivery | English: delivery fields
     direccion_entrega = db.Column(db.String(255), nullable=True, default='')   # Dirección de envío | Delivery address
     telefono_contacto = db.Column(db.String(20), nullable=True, default='')    # Teléfono del cliente | Customer phone
@@ -36,6 +39,7 @@ class Pedido(db.Model):
             "total": float(self.total) if self.total else 0,
             "estado": self.estado or 'pendiente',
             "articulos": articulos_lista,
+            "tipo": self.tipo,  # None → null en JSON → frontend usa fallback heurístico | None → null in JSON → frontend uses heuristic fallback
             "direccion_entrega": self.direccion_entrega or '',
             "telefono_contacto": self.telefono_contacto or '',
             "metodo_pago": self.metodo_pago,

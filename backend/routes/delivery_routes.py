@@ -284,6 +284,7 @@ def migrar_columnas_delivery():
         ('metodo_pago', 'ALTER TABLE pedido ADD COLUMN metodo_pago VARCHAR(20) DEFAULT NULL'),
         ('domiciliario_id', 'ALTER TABLE pedido ADD COLUMN domiciliario_id INTEGER REFERENCES usuario(id) DEFAULT NULL'),
         ('fecha_entrega', 'ALTER TABLE pedido ADD COLUMN fecha_entrega DATETIME DEFAULT NULL'),
+        ('tipo', 'ALTER TABLE pedido ADD COLUMN tipo VARCHAR(20) DEFAULT NULL'),
     ]
 
     for columna, sql in migraciones:

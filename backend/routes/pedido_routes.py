@@ -38,6 +38,8 @@ def crear_pedido():
             articulos_json=articulos_str,
             total=datos.get('total'),
             estado=datos.get('estado', 'pendiente'),
+            # Español: tipo de pedido (domicilio por defecto desde el flujo de compra) | English: order type (delivery by default from purchase flow)
+            tipo='domicilio',
             # Español: campos de delivery | English: delivery fields
             direccion_entrega=datos.get('direccion') or datos.get('direccion_entrega', ''),
             telefono_contacto=datos.get('telefono') or datos.get('telefono_contacto', ''),

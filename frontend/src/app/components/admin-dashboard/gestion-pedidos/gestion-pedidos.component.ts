@@ -41,17 +41,19 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
     return this.pedidos.filter(p => this.getTipoPedido(p) === this.filtroTipo);
   }
 
-  // Español: determinar tipo de pedido (Mesa o Domicilio) | English: determine order type (Table or Delivery)
+  // Español: determinar tipo de pedido (Mesa o Domicilio) usando el campo explícito 'tipo' | English: determine order type (Table or Delivery) using explicit 'tipo' field
   getTipoPedido(pedido: Pedido): string {
+    // Español: usar el campo 'tipo' si existe; fallback a heurística por direccion_entrega | English: use 'tipo' field if present; fallback to direccion_entrega heuristic
+    if (pedido.tipo) return pedido.tipo;
     return pedido.direccion_entrega ? 'domicilio' : 'mesa';
   }
 
   getTipoLabel(pedido: Pedido): string {
-    return pedido.direccion_entrega ? '🚚 Domicilio' : '🪑 Mesa';
+    return this.getTipoPedido(pedido) === 'domicilio' ? '🚚 Domicilio' : '🪑 Mesa';
   }
 
   getTipoClase(pedido: Pedido): string {
-    return pedido.direccion_entrega ? 'badge-delivery' : 'badge-mesa';
+    return this.getTipoPedido(pedido) === 'domicilio' ? 'badge-delivery' : 'badge-mesa';
   }
 
   ngOnInit(): void {
