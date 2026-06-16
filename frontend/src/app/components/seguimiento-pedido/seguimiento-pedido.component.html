@@ -1,0 +1,136 @@
+<div class="seguimiento-page">
+  <div class="seguimiento-container">
+
+    <!-- Cargando -->
+    @if (cargando()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando información del pedido...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h3>Error</h3>
+        <p>{{ error() }}</p>
+        <a routerLink="/menu" class="btn-primary">Volver al Menú</a>
+      </div>
+    }
+
+    <!-- Pedido cargado -->
+    @if (pedido(); as p) {
+      <div class="pedido-card">
+
+        <!-- Encabezado -->
+        <div class="pedido-header">
+          <div class="header-left">
+            <span class="estado-icon">{{ getEstadoIcon(p.estado) }}</span>
+            <div>
+              <h2>Pedido #{{ p.id }}</h2>
+              <span class="estado-badge" [class]="'estado-' + p.estado.toLowerCase()">
+                {{ p.estado }}
+              </span>
+            </div>
+          </div>
+          <div class="header-right">
+            <div class="total">${{ p.total | number:'1.0-0' }}</div>
+            <div class="fecha">{{ p.fecha | date:'short' }}</div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-section">
+          <h3>📋 Estado del Pedido</h3>
+          <div class="timeline">
+            @for (paso of p.timeline; track paso.clave) {
+              <div class="timeline-step" [class.active]="paso.activo" [class.completed]="paso.completado">
+                <div class="step-indicator">
+                  @if (paso.completado) {
+                    <div class="step-dot completed"></div>
+                  } @else if (paso.activo) {
+                    <div class="step-dot active"></div>
+                  } @else {
+                    <div class="step-dot pending"></div>
+                  }
+                </div>
+                <div class="step-content">
+                  <span class="step-title">{{ paso.titulo }}</span>
+                  @if (paso.timestamp) {
+                    <span class="step-time">{{ paso.timestamp | date:'short' }}</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Dirección de entrega -->
+        @if (p.direccion_entrega) {
+          <div class="info-section">
+            <h3>📍 Dirección de Entrega</h3>
+            <p class="info-text">{{ p.direccion_entrega }}</p>
+            @if (p.telefono_contacto) {
+              <p class="info-text tel">📞 {{ p.telefono_contacto }}</p>
+            }
+          </div>
+        }
+
+        <!-- Domiciliario asignado -->
+        @if (p.domiciliario) {
+          <div class="info-section">
+            <h3>🚚 Domiciliario</h3>
+            <p class="info-text">{{ p.domiciliario.nombre }}</p>
+          </div>
+        }
+
+        <!-- Método de pago -->
+        @if (p.metodo_pago) {
+          <div class="info-section">
+            <h3>💳 Método de Pago</h3>
+            <p class="info-text">{{ p.metodo_pago }}</p>
+          </div>
+        }
+
+        <!-- Artículos del pedido -->
+        @if (p.articulos && p.articulos.length > 0) {
+          <div class="info-section">
+            <h3>🛒 Productos</h3>
+            <div class="articulos-list">
+              @for (art of p.articulos; track $index) {
+                <div class="articulo-row">
+                  <span class="art-cantidad">{{ art.cantidad }}×</span>
+                  <span class="art-nombre">{{ art.nombre }}</span>
+                  @if (art.tamano) {
+                    <span class="art-tamano">({{ art.tamano }})</span>
+                  }
+                  <span class="art-precio">${{ art.precio | number:'1.0-0' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- QR Code -->
+        @if (qrGenerado() && qrDataUrl()) {
+          <div class="qr-section">
+            <h3>📱 Comparte tu Pedido</h3>
+            <p class="qr-hint">Escanea para ver el estado del pedido</p>
+            <div class="qr-wrapper">
+              <img [src]="qrDataUrl()" alt="QR del pedido" class="qr-image" />
+            </div>
+          </div>
+        }
+
+        <!-- Acciones -->
+        <div class="actions">
+          <a routerLink="/mis-pedidos" class="btn-secondary">← Mis Pedidos</a>
+          <a routerLink="/menu" class="btn-primary">🍽️ Menú</a>
+        </div>
+
+      </div>
+    }
+
+  </div>
+</div>

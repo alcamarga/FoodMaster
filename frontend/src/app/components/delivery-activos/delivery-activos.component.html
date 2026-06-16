@@ -1,0 +1,158 @@
+<div class="delivery-page">
+  <div class="delivery-container">
+
+    <!-- Encabezado -->
+    <div class="header">
+      <h1>🚚 Delivery Activos</h1>
+      <p>Pedidos pendientes de entrega</p>
+      @if (usuario) {
+        <span class="user-badge">👤 {{ usuario.nombre }} ({{ usuario.rol }})</span>
+      }
+    </div>
+
+    <!-- Mensaje de éxito -->
+    @if (mensajeExito()) {
+      <div class="alert-success">
+        {{ mensajeExito() }}
+      </div>
+    }
+
+    <!-- Cargando -->
+    @if (cargando()) {
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Cargando pedidos activos...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (error()) {
+      <div class="error-state">
+        <p>⚠️ {{ error() }}</p>
+        <button class="btn-primary" (click)="cargarActivos()">Reintentar</button>
+      </div>
+    }
+
+    <!-- Lista de pedidos -->
+    @if (!cargando() && !error() && pedidos().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">🎉</div>
+        <h3>No hay pedidos pendientes</h3>
+        <p>Todos los pedidos han sido entregados</p>
+        <button class="btn-secondary" (click)="cargarActivos()">🔄 Recargar</button>
+      </div>
+    }
+
+    @if (!cargando() && pedidos().length > 0) {
+      <div class="pedidos-grid">
+        @for (pedido of pedidos(); track pedido.id) {
+          <div class="pedido-card" [class.es-mio]="pedido.es_mio">
+
+            <!-- Cabecera -->
+            <div class="card-header">
+              <div class="header-left">
+                <span class="pedido-id">#{{ pedido.id }}</span>
+                <span class="badge" [class]="getBadgeClass(pedido.estado || 'pendiente')">
+                  {{ pedido.estado }}
+                </span>
+              </div>
+              <div class="header-right">
+                <span class="total">${{ pedido.total | number:'1.0-0' }}</span>
+              </div>
+            </div>
+
+            <!-- Detalles -->
+            <div class="card-body">
+              @if (pedido.direccion_entrega) {
+                <div class="info-row">
+                  <span class="label">📍 Dirección:</span>
+                  <span class="value">{{ pedido.direccion_entrega }}</span>
+                </div>
+              }
+              @if (pedido.telefono_contacto) {
+                <div class="info-row">
+                  <span class="label">📞 Teléfono:</span>
+                  <span class="value">{{ pedido.telefono_contacto }}</span>
+                </div>
+              }
+              @if (pedido.fecha) {
+                <div class="info-row">
+                  <span class="label">📅 Pedido:</span>
+                  <span class="value">{{ pedido.fecha | date:'short' }}</span>
+                </div>
+              }
+
+              <!-- Artículos -->
+              @if (pedido.articulos && pedido.articulos.length > 0) {
+                <div class="articulos-mini">
+                  @for (art of pedido.articulos; track $index) {
+                    <span class="articulo-tag">{{ art.cantidad }}× {{ art.nombre }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Acciones -->
+            <div class="card-actions">
+              @if (pedido.es_mio) {
+                <button class="btn-success btn-sm" (click)="abrirModalPago(pedido)">
+                  💳 Registrar Pago
+                </button>
+                <button class="btn-outline btn-sm" (click)="liberar(pedido.id)">
+                  🔓 Liberar
+                </button>
+              } @else {
+                <button class="btn-primary btn-sm" (click)="asignar(pedido.id)">
+                  📦 Asignarme
+                </button>
+              }
+              <a [routerLink]="['/seguimiento', pedido.id]" class="btn-link btn-sm">
+                👁️ Ver
+              </a>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Botón de recarga -->
+    <div class="footer-actions">
+      <button class="btn-secondary" (click)="cargarActivos()">🔄 Recargar</button>
+      <a routerLink="/menu" class="btn-link">← Volver al Menú</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de pago -->
+@if (pedidoPago) {
+  <div class="modal-overlay" (click)="cerrarModalPago()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>💳 Registrar Pago — Pedido #{{ pedidoPago.id }}</h3>
+        <button class="modal-close" (click)="cerrarModalPago()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-total">Total: <strong>${{ pedidoPago.total | number:'1.0-0' }}</strong></p>
+        <div class="form-group">
+          <label>Método de pago</label>
+          <select class="form-select" [(ngModel)]="metodoPagoSeleccionado">
+            <option value="Efectivo">💵 Efectivo</option>
+            <option value="Transferencia">🏦 Transferencia</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="cerrarModalPago()">Cancelar</button>
+        <button class="btn-success" (click)="confirmarPago()" [disabled]="procesando()">
+          @if (procesando()) {
+            <span class="spinner-sm"></span> Procesando...
+          } @else {
+            ✅ Confirmar Pago
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -9,6 +9,8 @@ import { MisPedidosComponent } from './components/mis-pedidos/mis-pedidos.compon
 import { GestionPedidosComponent } from './components/admin-dashboard/gestion-pedidos/gestion-pedidos.component';
 import { MesasComponent } from './components/mesas/mesas.component';
 import { CocinaComponent } from './components/cocina/cocina.component';
+import { SeguimientoPedidoComponent } from './components/seguimiento-pedido/seguimiento-pedido.component';
+import { DeliveryActivosComponent } from './components/delivery-activos/delivery-activos.component';
 import { RoleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
@@ -52,11 +54,22 @@ export const routes: Routes = [
     data: { roles: ['admin', 'cocinero'] },
   },
 
-  // 7. Dashboard de usuario (requiere login) | User dashboard (requires login)
+  // 7. Seguimiento de pedido (autenticado) | Order tracking (authenticated)
+  { path: 'seguimiento/:id', component: SeguimientoPedidoComponent },
+
+  // 8. Delivery activos (domiciliario/admin) | Active deliveries (delivery person/admin)
+  {
+    path: 'delivery/activos',
+    component: DeliveryActivosComponent,
+    canActivate: [RoleGuard],
+    data: { roles: ['domiciliario', 'admin'] },
+  },
+
+  // 9. Dashboard de usuario (requiere login) | User dashboard (requires login)
   { path: 'dashboard', component: DashboardComponent, canActivate: [RoleGuard], data: { roles: [] } },
   { path: 'resumen', component: ResumenPedidoComponent, canActivate: [RoleGuard], data: { roles: [] } },
   { path: 'mis-pedidos', component: MisPedidosComponent, canActivate: [RoleGuard], data: { roles: [] } },
 
-  // 8. Comodín | Fallback
+  // 10. Comodín | Fallback
   { path: '**', redirectTo: '' },
 ];

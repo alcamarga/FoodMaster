@@ -73,9 +73,15 @@
               <span class="label">💰 Total:</span>
               <span class="value total">${{ pedido.total | number:'1.0-0' }}</span>
             </div>
+          </div>          <!-- Acción: Ver seguimiento -->
+          <div class="pedido-actions">
+            <a [routerLink]="['/seguimiento', pedido.id]" class="btn-seguimiento">
+              👁️ Ver Seguimiento
+            </a>
           </div>
 
         </div>
+
       </div>
     </div>
 
