@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, date
 
 from flask import Blueprint, jsonify, request
+from sqlalchemy import or_
 
 from models.database import db
 from models.pedido import Pedido
@@ -38,10 +39,12 @@ def _obtener_ventas_por_fecha(fecha_referencia: datetime | None = None) -> list[
     inicio_dia = datetime(fecha_referencia.year, fecha_referencia.month, fecha_referencia.day, 0, 0, 0)
     fin_dia = datetime(fecha_referencia.year, fecha_referencia.month, fecha_referencia.day, 23, 59, 59)
 
-    # Pedidos de domicilio del día
+    # Pedidos de domicilio del día (excluir tipo='mesa' porque las comandas pagadas ya cubren las ventas de salón)
+    # English: delivery orders for the day (exclude tipo='mesa' because paid comandas already cover dine-in sales)
     pedidos = Pedido.query.filter(
         Pedido.fecha >= inicio_dia,
         Pedido.fecha <= fin_dia,
+        or_(Pedido.tipo != 'mesa', Pedido.tipo.is_(None)),
     ).order_by(Pedido.fecha.desc()).all()
 
     # Comandas pagadas del día (ventas en salón)
