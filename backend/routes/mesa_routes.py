@@ -356,6 +356,30 @@ def agregar_producto(mesa_id: int, comanda_id: int | None = None):
 
 
 # ---------------------------------------------------------------------------
+# Función compartida: crear Pedido desde Comanda | Shared: create Pedido from Comanda
+# ---------------------------------------------------------------------------
+
+def _crear_pedido_desde_comanda(comanda: Comanda, estado: str) -> Pedido:
+    """
+    Crea un Pedido con tipo='mesa' a partir de una comanda.
+    Usado tanto por pagar_comanda() como por cerrar_comanda().
+    """
+    pedido = Pedido(
+        cliente_id=comanda.usuario_id,
+        articulos_json=comanda.articulos_json or '[]',
+        total=float(comanda.total or 0),
+        estado=estado,
+        tipo='mesa',
+        fecha=datetime.utcnow(),
+    )
+    db.session.add(pedido)
+    db.session.flush()
+    logger.info('🪑 Pedido de mesa #%s creado desde comanda #%s (estado: %s, total: $%s)',
+                pedido.id, comanda.id, estado, comanda.total)
+    return pedido
+
+
+# ---------------------------------------------------------------------------
 # Cierre y pago de comandas
 # ---------------------------------------------------------------------------
 
@@ -363,7 +387,7 @@ def agregar_producto(mesa_id: int, comanda_id: int | None = None):
 def pagar_comanda(mesa_id: int, comanda_id: int):
     """
     POST /api/mesas/<id>/comanda/<comanda_id>/pagar — Marca la comanda como pagada.
-    La mesa vuelve a estado LIBRE.
+    La mesa vuelve a estado LIBRE. Crea un Pedido con tipo='mesa'.
     """
     try:
         mesa = _obtener_mesa_o_error(mesa_id)
@@ -378,26 +402,16 @@ def pagar_comanda(mesa_id: int, comanda_id: int):
                 'message': f'La comanda ya está {comanda.estado}',
             }), 400
 
-        # Español: crear Pedido a partir de la comanda pagada (tipo='mesa') para que aparezca en Gestión de Pedidos | English: create Pedido from paid comanda (tipo='mesa') so it appears in Order Management
-        pedido_mesa = Pedido(
-            cliente_id=comanda.usuario_id,
-            articulos_json=comanda.articulos_json or '[]',
-            total=float(comanda.total or 0),
-            estado='pagada',
-            tipo='mesa',
-            # Español: usar la fecha actual (momento del pago) para alinearse con pedidos de delivery | English: use current time (payment moment) to align with delivery orders
-            fecha=datetime.utcnow(),
-        )
-        db.session.add(pedido_mesa)
-        db.session.flush()
-        logger.info('🪑 Pedido de mesa #%s creado desde comanda #%s (total: $%s)', pedido_mesa.id, comanda_id, comanda.total)
+        # Español: crear Pedido desde la comanda pagada | English: create Pedido from paid comanda
+        pedido_mesa = _crear_pedido_desde_comanda(comanda, 'pagada')
 
         # Máquina de estados: al pagar comanda → mesa LIBRE
         comanda.estado = 'pagada'
         mesa.estado = 'LIBRE'
         db.session.commit()
 
-        logger.info('💰 Comanda #%s pagada — mesa #%s liberada — Pedido #%s registrado', comanda_id, mesa.numero_mesa, pedido_mesa.id)
+        logger.info('💰 Comanda #%s pagada — mesa #%s liberada — Pedido #%s registrado',
+                    comanda_id, mesa.numero_mesa, pedido_mesa.id)
         return jsonify({
             'status': 'success',
             'message': f'Comanda #{comanda_id} pagada. Mesa #{mesa.numero_mesa} liberada. Pedido #{pedido_mesa.id} registrado.',
@@ -417,7 +431,7 @@ def pagar_comanda(mesa_id: int, comanda_id: int):
 def cerrar_comanda(mesa_id: int, comanda_id: int):
     """
     POST /api/mesas/<id>/comanda/<comanda_id>/cerrar — Cierra la comanda sin pago.
-    La mesa vuelve a estado LIBRE.
+    La mesa vuelve a estado LIBRE. Crea un Pedido con tipo='mesa'.
     """
     try:
         mesa = _obtener_mesa_o_error(mesa_id)
@@ -432,16 +446,21 @@ def cerrar_comanda(mesa_id: int, comanda_id: int):
                 'message': f'La comanda ya está {comanda.estado}',
             }), 400
 
+        # Español: crear Pedido desde la comanda cerrada (sin pago) | English: create Pedido from closed comanda (no payment)
+        pedido_mesa = _crear_pedido_desde_comanda(comanda, 'cerrada')
+
         # Máquina de estados: al cerrar comanda → mesa LIBRE
         comanda.estado = 'cerrada'
         mesa.estado = 'LIBRE'
         db.session.commit()
 
-        logger.info('🔒 Comanda #%s cerrada — mesa #%s liberada', comanda_id, mesa.numero_mesa)
+        logger.info('🔒 Comanda #%s cerrada — mesa #%s liberada — Pedido #%s registrado',
+                    comanda_id, mesa.numero_mesa, pedido_mesa.id)
         return jsonify({
             'status': 'success',
-            'message': f'Comanda #{comanda_id} cerrada. Mesa #{mesa.numero_mesa} liberada.',
+            'message': f'Comanda #{comanda_id} cerrada. Mesa #{mesa.numero_mesa} liberada. Pedido #{pedido_mesa.id} registrado.',
             'comanda': comanda.serializar(),
+            'pedido_id': pedido_mesa.id,
         }), 200
 
     except ValueError as e:
