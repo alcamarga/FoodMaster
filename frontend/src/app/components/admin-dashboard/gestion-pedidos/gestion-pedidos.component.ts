@@ -36,19 +36,42 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
   // FILTRO DE TIPO DE PEDIDO | ORDER TYPE FILTER
   // ----------------------------------------------------------------
   // Español: El campo 'tipo' en el modelo Pedido puede ser:
-  //   - 'mesa'      → pedido de salón (creado desde Comanda al pagar)
-  //   - 'domicilio' → pedido de delivery (creado desde el carrito de compras)
+  //   - 'mesa'      → pedido de salón
+  //   - 'domicilio' → pedido de delivery
   //   - null/undefined → pedidos antiguos: fallback heurístico por direccion_entrega
   //
   // English: The 'tipo' field in the Pedido model can be:
-  //   - 'mesa'      → dine-in order (created from Comanda on payment)
-  //   - 'domicilio' → delivery order (created from shopping cart)
+  //   - 'mesa'      → dine-in order
+  //   - 'domicilio' → delivery order
   //   - null/undefined → legacy orders: heuristic fallback by direccion_entrega
   //
-  // Flujo de creación:
-  //   - Domicilio: frontend cart → POST /api/pedidos → tipo='domicilio'
-  //   - Mesa:      comanda pagada → POST /api/mesas/<id>/comanda/<id>/pagar
-  //                → crea Pedido con tipo='mesa' en backend/routes/mesa_routes.py
+  // Flujo de creación de pedidos:
+  //
+  //   🚚 Domicilio (tipo='domicilio'):
+  //     1. Cliente agrega productos al carrito en menu.component
+  //     2. Cliente confirma pedido en resumen-pedido.component
+  //     3. CartService.confirmarPedido() → POST /api/pedidos
+  //     4. Backend: pedido_routes.py asigna tipo='domicilio' por defecto
+  //     5. Aparece en Gestión de Pedidos con badge 🚚 Domicilio
+  //
+  //   🪑 Mesa (tipo='mesa'):
+  //     Opción A — Desde Comanda (recomendado):
+  //       1. Mesero abre comanda → POST /api/mesas/<id>/comanda
+  //       2. Agrega productos → POST /api/mesas/<id>/agregar
+  //       3. Cliente paga → POST /api/mesas/<id>/comanda/<id>/pagar
+  //       4. Backend: mesa_routes.py crea Pedido con tipo='mesa'
+  //       5. Aparece en Gestión de Pedidos con badge 🪑 Mesa
+  //
+  //     Opción B — Directo (admin):
+  //       1. POST /api/pedidos con {"tipo":"mesa", ...}
+  //       2. Backend: pedido_routes.py acepta el tipo explícito
+  //
+  //   Filtro reactivo:
+  //     - 'todos':    muestra todos los pedidos sin filtrar
+  //     - 'mesa':     filtra pedidos donde getTipoPedido() === 'mesa'
+  //     - 'domicilio': filtra pedidos donde getTipoPedido() === 'domicilio'
+  //     - El getter pedidosFiltrados se recalcula automáticamente
+  //       cuando cambia filtroTipo o pedidos (reactividad de Angular)
   // ----------------------------------------------------------------
   filtroTipo: string = 'todos'; // 'todos' | 'mesa' | 'domicilio'
 
