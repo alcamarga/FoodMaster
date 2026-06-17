@@ -19,9 +19,9 @@ export interface Pedido {
   cliente?: string;
   fecha_hora?: string;
   fecha?: string;
-  subtotal?: number;
-  iva?: number;
-  total: number;
+  subtotal?: number;            // Español: subtotal calculado por el backend desde articulos_json | English: subtotal calculated by backend from articulos_json
+  iva?: number;                 // Español: IVA (19%) calculado por el backend desde articulos_json | English: VAT (19%) calculated by backend from articulos_json
+  total: number;                // Español: total calculado por el backend (subtotal + IVA) | English: total calculated by backend (subtotal + VAT)
   estado?: string;
   articulos?: ItemPedido[];
   pizzas?: string;

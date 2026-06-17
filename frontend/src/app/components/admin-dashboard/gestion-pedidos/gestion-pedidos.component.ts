@@ -115,11 +115,16 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
     this.pedidoDetalle = null;
   }
 
+  // Español: usar subtotal/IVA calculados por el backend desde articulos_json | English: use subtotal/VAT calculated by backend from articulos_json
   subtotalPedido(pedido: Pedido): number {
+    if (pedido.subtotal !== undefined) return pedido.subtotal;
+    // Español: fallback para pedidos antiguos sin subtotal en el payload | English: fallback for old orders without subtotal in payload
     return Math.round((pedido.total ?? 0) / 1.19);
   }
 
   ivaPedido(pedido: Pedido): number {
+    if (pedido.iva !== undefined) return pedido.iva;
+    // Español: fallback para pedidos antiguos sin iva en el payload | English: fallback for old orders without iva in payload
     return Math.round((pedido.total ?? 0) - this.subtotalPedido(pedido));
   }
 

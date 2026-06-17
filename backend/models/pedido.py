@@ -32,11 +32,29 @@ class Pedido(db.Model):
             except:
                 pass
 
+        # Español: calcular total dinámicamente desde los artículos | English: calculate total dynamically from items
+        try:
+            if not articulos_lista:
+                raise ValueError('Lista vacía — usar total almacenado | Empty list — use stored total')
+            subtotal_calculado = sum(
+                float(a.get('precio', a.get('precio_unitario', 0))) * float(a.get('cantidad', 1))
+                for a in articulos_lista
+            )
+            iva_calculado = round(subtotal_calculado * 0.19)
+            total_calculado = subtotal_calculado + iva_calculado
+        except Exception:
+            # Español: fallback al total almacenado (pedidos antiguos sin artículos o malformados) | English: fallback to stored total (legacy orders without items or malformed)
+            total_calculado = float(self.total) if self.total else 0
+            subtotal_calculado = round(total_calculado / 1.19)
+            iva_calculado = total_calculado - subtotal_calculado
+
         resultado = {
             "id": self.id,
             "cliente_id": self.cliente_id,
             "fecha": self.fecha.isoformat() if self.fecha else None,
-            "total": float(self.total) if self.total else 0,
+            "total": round(total_calculado, 2),
+            "subtotal": round(subtotal_calculado, 2),
+            "iva": round(iva_calculado, 2),
             "estado": self.estado or 'pendiente',
             "articulos": articulos_lista,
             "tipo": self.tipo,  # None → null en JSON → frontend usa fallback heurístico | None → null in JSON → frontend uses heuristic fallback

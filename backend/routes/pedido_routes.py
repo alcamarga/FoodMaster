@@ -33,10 +33,23 @@ def crear_pedido():
     try:
         articulos_brutos = datos.get('articulos') or datos.get('articulos_json') or []
         articulos_str = articulos_brutos if isinstance(articulos_brutos, str) else json.dumps(articulos_brutos)
+        # Español: calcular total dinámicamente desde los artículos (server-side) | English: calculate total dynamically from items (server-side)
+        try:
+            subtotal = sum(
+                float(a.get('precio', a.get('precio_unitario', 0))) * float(a.get('cantidad', 1))
+                for a in articulos_brutos
+            )
+            iva = round(subtotal * 0.19)
+            total_calculado = subtotal + iva
+        except Exception:
+            subtotal = 0
+            iva = 0
+            total_calculado = float(datos.get('total', 0))
+
         nuevo_pedido = Pedido(
             cliente_id=datos.get('usuario_id') or datos.get('cliente_id'),
             articulos_json=articulos_str,
-            total=datos.get('total'),
+            total=total_calculado,
             estado=datos.get('estado', 'pendiente'),
             # Español: tipo de pedido (domicilio por defecto desde el flujo de compra) | English: order type (delivery by default from purchase flow)
             tipo='domicilio',
