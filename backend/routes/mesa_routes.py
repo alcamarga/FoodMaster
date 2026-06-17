@@ -11,6 +11,7 @@ from flask import Blueprint, jsonify, request
 from models.database import db
 from models.mesa import Mesa
 from models.comanda import Comanda
+from models.pedido import Pedido
 from models.usuario import Usuario
 
 mesa_bp = Blueprint('mesa_bp', __name__)
@@ -377,16 +378,31 @@ def pagar_comanda(mesa_id: int, comanda_id: int):
                 'message': f'La comanda ya está {comanda.estado}',
             }), 400
 
+        # Español: crear Pedido a partir de la comanda pagada (tipo='mesa') para que aparezca en Gestión de Pedidos | English: create Pedido from paid comanda (tipo='mesa') so it appears in Order Management
+        pedido_mesa = Pedido(
+            cliente_id=comanda.usuario_id,
+            articulos_json=comanda.articulos_json or '[]',
+            total=float(comanda.total or 0),
+            estado='pagada',
+            tipo='mesa',
+            # Español: usar la fecha actual (momento del pago) para alinearse con pedidos de delivery | English: use current time (payment moment) to align with delivery orders
+            fecha=datetime.utcnow(),
+        )
+        db.session.add(pedido_mesa)
+        db.session.flush()
+        logger.info('🪑 Pedido de mesa #%s creado desde comanda #%s (total: $%s)', pedido_mesa.id, comanda_id, comanda.total)
+
         # Máquina de estados: al pagar comanda → mesa LIBRE
         comanda.estado = 'pagada'
         mesa.estado = 'LIBRE'
         db.session.commit()
 
-        logger.info('💰 Comanda #%s pagada — mesa #%s liberada', comanda_id, mesa.numero_mesa)
+        logger.info('💰 Comanda #%s pagada — mesa #%s liberada — Pedido #%s registrado', comanda_id, mesa.numero_mesa, pedido_mesa.id)
         return jsonify({
             'status': 'success',
-            'message': f'Comanda #{comanda_id} pagada. Mesa #{mesa.numero_mesa} liberada.',
+            'message': f'Comanda #{comanda_id} pagada. Mesa #{mesa.numero_mesa} liberada. Pedido #{pedido_mesa.id} registrado.',
             'comanda': comanda.serializar(),
+            'pedido_id': pedido_mesa.id,
         }), 200
 
     except ValueError as e:

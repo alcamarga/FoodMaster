@@ -32,10 +32,27 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
   estadosDisponibles = ['Pendiente', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
   private sub: Subscription | null = null;
 
-  // Español: filtro de tipo de pedido | English: order type filter
+  // ----------------------------------------------------------------
+  // FILTRO DE TIPO DE PEDIDO | ORDER TYPE FILTER
+  // ----------------------------------------------------------------
+  // Español: El campo 'tipo' en el modelo Pedido puede ser:
+  //   - 'mesa'      → pedido de salón (creado desde Comanda al pagar)
+  //   - 'domicilio' → pedido de delivery (creado desde el carrito de compras)
+  //   - null/undefined → pedidos antiguos: fallback heurístico por direccion_entrega
+  //
+  // English: The 'tipo' field in the Pedido model can be:
+  //   - 'mesa'      → dine-in order (created from Comanda on payment)
+  //   - 'domicilio' → delivery order (created from shopping cart)
+  //   - null/undefined → legacy orders: heuristic fallback by direccion_entrega
+  //
+  // Flujo de creación:
+  //   - Domicilio: frontend cart → POST /api/pedidos → tipo='domicilio'
+  //   - Mesa:      comanda pagada → POST /api/mesas/<id>/comanda/<id>/pagar
+  //                → crea Pedido con tipo='mesa' en backend/routes/mesa_routes.py
+  // ----------------------------------------------------------------
   filtroTipo: string = 'todos'; // 'todos' | 'mesa' | 'domicilio'
 
-  // Español: obtener pedidos filtrados por tipo | English: get orders filtered by type
+  // Español: getter reactivo — se actualiza automáticamente al cambiar filtroTipo o pedidos | English: reactive getter — auto-updates on filtroTipo or pedidos change
   get pedidosFiltrados(): Pedido[] {
     if (this.filtroTipo === 'todos') return this.pedidos;
     return this.pedidos.filter(p => this.getTipoPedido(p) === this.filtroTipo);
