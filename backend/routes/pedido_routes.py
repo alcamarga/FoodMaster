@@ -39,15 +39,16 @@ def crear_pedido():
     try:
         articulos_brutos = datos.get('articulos') or datos.get('articulos_json') or []
         articulos_str = articulos_brutos if isinstance(articulos_brutos, str) else json.dumps(articulos_brutos)
-        # Español: calcular total dinámicamente desde los artículos (server-side) | English: calculate total dynamically from items (server-side)
+        # Español: calcular total dinámicamente desde los artículos (precios ya incluyen IVA)
+        # English: calculate total dynamically from items (prices already include VAT)
         try:
-            subtotal = sum(
+            total_calculado = sum(
                 float(a.get('precio', a.get('precio_unitario', 0))) * float(a.get('cantidad', 1))
                 for a in articulos_brutos
             )
             porcentaje_iva = Configuracion.obtener_iva_decimal()
-            iva = round(subtotal * porcentaje_iva)
-            total_calculado = subtotal + iva
+            subtotal = round(total_calculado / (1 + porcentaje_iva))
+            iva = total_calculado - subtotal
         except Exception:
             subtotal = 0
             iva = 0

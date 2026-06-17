@@ -42,7 +42,7 @@ FoodMaster es un ecosistema 100% portable y autónomo con frontend (Angular/Ngin
 
 #### Módulos Implementados
 - **🍳 Monitor de Cocina (KDS):** Vista en tiempo real con pedidos activos (Pendiente + En Preparación) separados por origen Mesa/Domicilio. Refresco automático cada 15s. Solo visible para Administradores y Cocineros.
-- **📋 Gestión de Pedidos:** Tabla profesional con detalle de productos, estados claros (Pendiente / En Preparación / Pagado) e IVA dinámico.
+- **📋 Gestión de Pedidos:** Tabla profesional con detalle de productos, estados claros (Pendiente / En Preparación / Pagado) e IVA dinámico **incluido en el precio** (extraído mediante `subtotal = total / 1.19`).
 - **🪑 Gestión de Mesas:** Comandas estilo POS con apertura, agregado de productos y cierre/pago.
 - **🚚 Delivery Inteligente:** Asignación de domiciliarios, seguimiento con QR, pago en efectivo/transferencia.
 - **⚙️ Configuración del Negocio:** Nombre, datos de contacto, moneda e IVA dinámico desde panel admin.

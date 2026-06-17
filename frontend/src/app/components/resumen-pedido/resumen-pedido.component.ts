@@ -21,6 +21,7 @@ export class ResumenPedidoComponent {
   items = computed(() => this.cartService.items() || []);
   
   total = this.cartService.totalCarrito;
+  subtotal = this.cartService.subtotalCarrito;
   iva = this.cartService.ivaCarrito;
   totalConIva = this.cartService.totalConIva;
   totalItems = this.cartService.totalArticulos;

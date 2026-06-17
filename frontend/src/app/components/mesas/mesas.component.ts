@@ -336,14 +336,19 @@ export class MesasComponent implements OnInit {
     return clases[estado] || 'badge bg-secondary';
   }
 
-  // Calcular subtotal de artículos | Calculate subtotal of items
-  calcularSubtotal(articulos: IArticuloComanda[]): number {
+  // Español: calcular total (precios ya incluyen IVA) | English: calculate total (prices already include VAT)
+  calcularTotal(articulos: IArticuloComanda[]): number {
     return articulos.reduce((total, art) => total + art.precio * art.cantidad, 0);
   }
 
-  // Calcular IVA (19%) | Calculate VAT (19%)
+  // Español: calcular subtotal extrayendo IVA del total | English: calculate subtotal by extracting VAT from total
+  calcularSubtotal(articulos: IArticuloComanda[]): number {
+    return Math.round(this.calcularTotal(articulos) / 1.19);
+  }
+
+  // Español: calcular IVA extraído del total | English: calculate VAT extracted from total
   calcularIVA(articulos: IArticuloComanda[]): number {
-    return Math.round(this.calcularSubtotal(articulos) * 0.19);
+    return this.calcularTotal(articulos) - this.calcularSubtotal(articulos);
   }
 
   // Productos filtrados por búsqueda | Products filtered by search

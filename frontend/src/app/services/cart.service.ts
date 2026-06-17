@@ -31,19 +31,24 @@ export class CartService {
     this._items().reduce((acc, a) => acc + a.cantidad, 0)
   );
 
-  // Precio total del carrito (sin IVA = subtotal base)
+  // Precio total del carrito (precios ya incluyen IVA, este ES el total final)
   public readonly totalCarrito = computed(() =>
     this._items().reduce((acc, a) => acc + a.precioUnitario * a.cantidad, 0)
   );
 
-  // IVA (19% sobre el subtotal)
-  public readonly ivaCarrito = computed(() =>
-    Math.round(this.totalCarrito() * 0.19)
+  // Subtotal base (sin IVA) — extraído del total
+  public readonly subtotalCarrito = computed(() =>
+    Math.round(this.totalCarrito() / 1.19)
   );
 
-  // Total final con IVA incluido
+  // IVA (19% extraído del total)
+  public readonly ivaCarrito = computed(() =>
+    this.totalCarrito() - this.subtotalCarrito()
+  );
+
+  // Total final (el precio ya incluye IVA, es idéntico a totalCarrito)
   public readonly totalConIva = computed(() =>
-    this.totalCarrito() + this.ivaCarrito()
+    this.totalCarrito()
   );
 
   constructor() {
@@ -110,9 +115,10 @@ export class CartService {
 
   /** Español: envía el pedido al backend con datos de entrega | English: send order to backend with delivery data */
   confirmarPedido(usuarioId: number, datosEntrega?: { direccion: string; telefono: string; metodo_pago?: string | null }): Observable<any> {
-    const subtotal = this.totalCarrito();
-    const iva = subtotal * 0.19; // 19% IVA
-    const total = subtotal + iva;
+    // Español: precios ya incluyen IVA — extraer subtotal e IVA | English: prices include VAT — extract subtotal and VAT
+    const total = this.totalCarrito();
+    const subtotal = Math.round(total / 1.19);
+    const iva = total - subtotal;
     const fechaActual = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
     const payload: any = {

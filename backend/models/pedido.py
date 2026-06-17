@@ -42,17 +42,18 @@ class Pedido(db.Model):
             except:
                 pass
 
-        # Español: calcular total dinámicamente desde los artículos | English: calculate total dynamically from items
+        # Español: calcular total dinámicamente desde los artículos (precios ya incluyen IVA)
+        # English: calculate total dynamically from items (prices already include VAT)
         try:
             if not articulos_lista:
                 raise ValueError('Lista vacía — usar total almacenado | Empty list — use stored total')
-            subtotal_calculado = sum(
+            total_calculado = sum(
                 float(a.get('precio', a.get('precio_unitario', 0))) * float(a.get('cantidad', 1))
                 for a in articulos_lista
             )
             iva_decimal = _iva_decimal()
-            iva_calculado = round(subtotal_calculado * iva_decimal)
-            total_calculado = subtotal_calculado + iva_calculado
+            subtotal_calculado = round(total_calculado / (1 + iva_decimal))
+            iva_calculado = total_calculado - subtotal_calculado
         except Exception:
             # Español: fallback al total almacenado (pedidos antiguos sin artículos o malformados) | English: fallback to stored total (legacy orders without items or malformed)
             iva_decimal = _iva_decimal()

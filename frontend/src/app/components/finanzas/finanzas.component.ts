@@ -164,16 +164,21 @@ export class FinanzasComponent implements OnInit {
     });
   }
 
-  // Calcular subtotal de artículos | Calculate subtotal of items
-  calcularSubtotal(articulos: any[]): number {
+  // Español: calcular total (precios ya incluyen IVA) | English: calculate total (prices already include VAT)
+  calcularTotal(articulos: any[]): number {
     return (articulos || []).reduce((sum, a) => {
       return sum + (a.precio || a.precio_unitario || 0) * (a.cantidad || 1);
     }, 0);
   }
 
-  // Calcular IVA (19%) | Calculate VAT (19%)
-  calcularIVA(subtotal: number): number {
-    return Math.round(subtotal * 0.19);
+  // Español: calcular subtotal extrayendo IVA del total | English: calculate subtotal by extracting VAT from total
+  calcularSubtotal(total: number): number {
+    return Math.round(total / 1.19);
+  }
+
+  // Español: calcular IVA extraído del total | English: calculate VAT extracted from total
+  calcularIVA(total: number): number {
+    return total - this.calcularSubtotal(total);
   }
 
   // Español: abrir detalle de venta | English: open sale detail

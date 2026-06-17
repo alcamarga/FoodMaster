@@ -62,6 +62,12 @@
 - **Frontend:** CocinaComponent refinado como "Monitor de Cocina"
 - Flujo: Pedido aparece al registrarse → Despachado desaparece del monitor → Se consolida en Gestión de Pedidos al pagar
 
+### Tarea #8: IVA Incluido en Precio Final
+- **Cambio de lógica:** El IVA ahora está **incluido** en el precio de los productos (no se suma aparte)
+- **Fórmula:** `subtotal = total / 1.19`, `iva = total - subtotal` (extracción en lugar de adición)
+- **Backend:** `serializar()` en `pedido.py` y `crear_pedido()` en `pedido_routes.py` actualizados
+- **Frontend:** `cart.service.ts` (signals), `resumen-pedido`, `mesas`, `finanzas` actualizados con la nueva lógica
+
 ## Próximos Pasos
 - Implementar actualización de estados de pedidos
 - Pruebas de integración finales

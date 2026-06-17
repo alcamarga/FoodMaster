@@ -272,3 +272,39 @@ Los logs mostrarán todo el proceso de creación del pedido y descuento de inven
 ---
 
 **¡Implementación completada con éxito! 🎉**
+
+## 🔄 Cambio: IVA Incluido en Precio Final (17 de Junio de 2026)
+
+### Motivación
+Anteriormente el IVA se sumaba al precio de los productos (precios sin IVA). Ahora los precios de los productos **ya incluyen el IVA**, y el sistema extrae el subtotal base y el IVA a partir del total.
+
+### Lógica Implementada
+
+```
+// ❌ Antes (IVA se suma)
+subtotal = precio * cantidad
+iva = subtotal * 0.19
+total = subtotal + iva
+
+// ✅ Ahora (IVA incluido en precio)
+total = precio * cantidad  // el precio ya incluye IVA
+subtotal = total / 1.19
+iva = total - subtotal
+```
+
+### Archivos Modificados
+
+**Backend:**
+- `backend/models/pedido.py` — `serializar()`: try block ahora extrae IVA del total
+- `backend/routes/pedido_routes.py` — `crear_pedido()`: misma lógica de extracción
+
+**Frontend:**
+- `frontend/src/app/services/cart.service.ts` — signals `ivaCarrito`, `subtotalCarrito`, `totalConIva` actualizadas; `confirmarPedido()` usa extracción
+- `frontend/src/app/components/resumen-pedido/resumen-pedido.component.ts` — nuevo signal `subtotal`
+- `frontend/src/app/components/resumen-pedido/resumen-pedido.component.html` — etiquetas corregidas ("IVA incluido")
+- `frontend/src/app/components/mesas/mesas.component.ts` — nuevos métodos `calcularTotal()`, `calcularSubtotal()`, `calcularIVA()`
+- `frontend/src/app/components/mesas/mesas.component.html` — template actualizado con extracción de IVA
+- `frontend/src/app/components/finanzas/finanzas.component.ts` — métodos refactorizados
+- `frontend/src/app/components/finanzas/finanzas.component.html` — template actualizado
+
+**Nota:** `gestion-pedidos.component.ts` no requirió cambios porque ya usaba `total / (1 + IVA)` como fórmula de respaldo.
