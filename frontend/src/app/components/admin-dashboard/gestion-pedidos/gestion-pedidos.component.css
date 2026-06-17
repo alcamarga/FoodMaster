@@ -1,3 +1,6 @@
+/* **Actualizado:** 17 de junio de 2026 — Tarea #6: Refinamiento Gestión de Pedidos */
+/* Styles for the professional order management table */
+
 .gestion-container {
   padding: 1rem;
 }
@@ -34,6 +37,7 @@
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
 }
 
 .admin-table th {
@@ -42,6 +46,7 @@
   font-weight: bold;
   text-transform: uppercase;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .admin-table tr:hover {
@@ -53,16 +58,8 @@
   color: #d4af37;
 }
 
-.articulos-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.85rem;
-  color: #ccc;
-}
-
-/* Status Dropdown */
-.status-select {
+/* ===== Status Dropdown ===== */
+.estado-select {
   padding: 0.4rem 0.8rem;
   border-radius: 5px;
   background: #111;
@@ -70,43 +67,81 @@
   border: 1px solid rgba(255,255,255,0.2);
   cursor: pointer;
   outline: none;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s;
+  appearance: auto;
 }
 
-.status-select:focus {
+.estado-select:focus {
   border-color: #d4af37;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
 }
 
-.status-select.pendiente { border-color: #d4af37; color: #d4af37; }
-.status-select.preparando { border-color: #3498db; color: #3498db; }
-.status-select.enviado { border-color: #e67e22; color: #e67e22; }
-.status-select.entregado { border-color: #2ecc71; color: #2ecc71; }
-.status-select.cancelado { border-color: #e74c3c; color: #e74c3c; }
+.estado-select option {
+  background: #1a1a1a;
+  color: #fff;
+  padding: 8px;
+}
 
-/* Español: badges de tipo de pedido (Mesa/Domicilio) | English: order type badges (Table/Delivery) */
+/* Badge classes for select (mapped via getEstadoClase) */
+.badge-pendiente {
+  background: #856404 !important;
+  color: #ffc107 !important;
+  border: 1px solid #ffc107 !important;
+}
+
+.badge-preparacion {
+  background: #0d5e8a !important;
+  color: #0dcaf0 !important;
+  border: 1px solid #0dcaf0 !important;
+}
+
+.badge-pagado {
+  background: #14532d !important;
+  color: #4ade80 !important;
+  border: 1px solid #4ade80 !important;
+}
+
+.badge-default {
+  background: #333 !important;
+  color: #aaa !important;
+  border: 1px solid #555 !important;
+}
+
+/* ===== Tipo badges (Mesa/Domicilio) ===== */
 .tipo-badge {
   display: inline-block;
-  padding: 0.2rem 0.7rem;
+  padding: 0.15rem 0.6rem;
   border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   white-space: nowrap;
+  letter-spacing: 0.3px;
+  margin-top: 2px;
 }
 
 .badge-mesa {
   background: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .badge-delivery {
   background: rgba(16, 185, 129, 0.15);
   color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
-/* Español: botones de filtro tipo | English: type filter buttons */
+/* ===== Status badge in modal ===== */
+.badge-estado {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* ===== Filter buttons ===== */
 .btn-group .btn {
   font-size: 0.8rem;
   padding: 0.3rem 0.8rem;
@@ -143,7 +178,7 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Toast Styles */
+/* ===== Toast ===== */
 .toast-notification {
   position: fixed;
   bottom: 30px;
@@ -183,7 +218,7 @@
   border: 1px solid #d4af37;
   border-radius: 16px;
   width: 100%;
-  max-width: 600px;
+  max-width: 620px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
@@ -225,23 +260,22 @@
 
 .detalle-meta {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
   font-size: 0.85rem;
   color: #aaa;
 }
 
-.badge-estado {
-  background: rgba(212, 175, 55, 0.15);
-  color: #d4af37;
-  border: 1px solid #d4af37;
-  border-radius: 20px;
-  padding: 2px 10px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
+.detalle-direccion {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 1rem;
+  color: #34d399;
+  font-size: 0.85rem;
 }
 
 .detalle-table {

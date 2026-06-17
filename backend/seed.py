@@ -20,7 +20,9 @@ def seed_data():
         
         try:
             # Limpieza total con nombres correctos (plurales)
-            db.session.execute(text('DROP TABLE IF EXISTS pedido, recetas, receta_item, receta, insumos, producto, usuario CASCADE;'))
+            # SQLite: drop tables individually (CASCADE no es soportado)
+            for tbl in ['pedido', 'receta_item', 'recetas', 'insumos', 'producto', 'usuario']:
+                db.session.execute(text(f'DROP TABLE IF EXISTS {tbl}'))
             db.session.commit()
             print("✨ Tablas antiguas eliminadas (incluyendo insumos y recetas).")
         except Exception as e:

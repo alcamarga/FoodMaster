@@ -1,10 +1,14 @@
+// **Actualizado:** 17 de junio de 2026 — Tarea #6: Refinamiento Gestión de Pedidos
+// Español: tabla profesional con IVA dinámico, estados mapeados, detalle de productos y origen claro
+
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OrderService, Pedido } from '../../../services/order.service';
+import { OrderService, Pedido, ItemPedido } from '../../../services/order.service';
 import { FormsModule } from '@angular/forms';
 import { catchError } from 'rxjs/operators';
 import { throwError, Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
+import { ConfiguracionService } from '../../../services/configuracion.service';
 
 @Component({
   selector: 'app-gestion-pedidos',
@@ -16,10 +20,13 @@ import { AuthService } from '../../../services/auth.service';
 export class GestionPedidosComponent implements OnInit, OnDestroy {
   private orderService = inject(OrderService);
   private authService = inject(AuthService);
-  
-  // BLINDAJE: Inicializamos como arreglo vacío para evitar error de .length
+  private configService = inject(ConfiguracionService);
+
   pedidos: Pedido[] = [];
   cargando = true;
+
+  // Español: IVA dinámico desde configuración | English: dynamic VAT from config
+  ivaDecimal = 0.19;
 
   // Signals para UI
   mostrarToast = signal(false);
@@ -29,61 +36,23 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
   pedidoDetalle: Pedido | null = null;
   mostrarDetalle = false;
 
-  estadosDisponibles = ['Pendiente', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
+  // Español: estados mapeados para gestión de pedidos | English: mapped states for order management
+  // Pendiente → pedido recién creado (visible en cocina como 'pendiente')
+  // En Preparación → cocina está trabajando en él (visible en cocina como 'en_preparacion')
+  // Pagado → pedido completado/pagado
+  estadosDisponibles = ['PENDIENTE', 'EN_PREPARACION', 'PAGADO'];
+
   private sub: Subscription | null = null;
 
-  // ----------------------------------------------------------------
-  // FILTRO DE TIPO DE PEDIDO | ORDER TYPE FILTER
-  // ----------------------------------------------------------------
-  // Español: El campo 'tipo' en el modelo Pedido puede ser:
-  //   - 'mesa'      → pedido de salón
-  //   - 'domicilio' → pedido de delivery
-  //   - null/undefined → pedidos antiguos: fallback heurístico por direccion_entrega
-  //
-  // English: The 'tipo' field in the Pedido model can be:
-  //   - 'mesa'      → dine-in order
-  //   - 'domicilio' → delivery order
-  //   - null/undefined → legacy orders: heuristic fallback by direccion_entrega
-  //
-  // Flujo de creación de pedidos:
-  //
-  //   🚚 Domicilio (tipo='domicilio'):
-  //     1. Cliente agrega productos al carrito en menu.component
-  //     2. Cliente confirma pedido en resumen-pedido.component
-  //     3. CartService.confirmarPedido() → POST /api/pedidos
-  //     4. Backend: pedido_routes.py asigna tipo='domicilio' por defecto
-  //     5. Aparece en Gestión de Pedidos con badge 🚚 Domicilio
-  //
-  //   🪑 Mesa (tipo='mesa'):
-  //     Opción A — Desde Comanda (recomendado):
-  //       1. Mesero abre comanda → POST /api/mesas/<id>/comanda
-  //       2. Agrega productos → POST /api/mesas/<id>/agregar
-  //       3. Cliente paga → POST /api/mesas/<id>/comanda/<id>/pagar
-  //       4. Backend: mesa_routes.py crea Pedido con tipo='mesa'
-  //       5. Aparece en Gestión de Pedidos con badge 🪑 Mesa
-  //
-  //     Opción B — Directo (admin):
-  //       1. POST /api/pedidos con {"tipo":"mesa", ...}
-  //       2. Backend: pedido_routes.py acepta el tipo explícito
-  //
-  //   Filtro reactivo:
-  //     - 'todos':    muestra todos los pedidos sin filtrar
-  //     - 'mesa':     filtra pedidos donde getTipoPedido() === 'mesa'
-  //     - 'domicilio': filtra pedidos donde getTipoPedido() === 'domicilio'
-  //     - El getter pedidosFiltrados se recalcula automáticamente
-  //       cuando cambia filtroTipo o pedidos (reactividad de Angular)
-  // ----------------------------------------------------------------
-  filtroTipo: string = 'todos'; // 'todos' | 'mesa' | 'domicilio'
+  // Filtro de tipo de pedido | Order type filter
+  filtroTipo: string = 'todos';
 
-  // Español: getter reactivo — se actualiza automáticamente al cambiar filtroTipo o pedidos | English: reactive getter — auto-updates on filtroTipo or pedidos change
   get pedidosFiltrados(): Pedido[] {
     if (this.filtroTipo === 'todos') return this.pedidos;
     return this.pedidos.filter(p => this.getTipoPedido(p) === this.filtroTipo);
   }
 
-  // Español: determinar tipo de pedido (Mesa o Domicilio) usando el campo explícito 'tipo' | English: determine order type (Table or Delivery) using explicit 'tipo' field
   getTipoPedido(pedido: Pedido): string {
-    // Español: usar el campo 'tipo' si existe; fallback a heurística por direccion_entrega | English: use 'tipo' field if present; fallback to direccion_entrega heuristic
     if (pedido.tipo) return pedido.tipo;
     return pedido.direccion_entrega ? 'domicilio' : 'mesa';
   }
@@ -96,8 +65,40 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
     return this.getTipoPedido(pedido) === 'domicilio' ? 'badge-delivery' : 'badge-mesa';
   }
 
+  // Español: obtener nombre legible del cliente según tipo de pedido
+  // English: get readable client name based on order type
+  getClienteLabel(pedido: Pedido): string {
+    if (pedido.cliente) return pedido.cliente;
+    const id = pedido.cliente_id ?? pedido.usuario_id;
+    if (!id) return '—';
+    return `Usuario #${id}`;
+  }
+
+  // Español: resumen de productos para la tabla (primeros 2 artículos + contador)
+  // English: product summary for the table (first 2 items + counter)
+  getResumenProductos(articulos: ItemPedido[] | undefined): string {
+    if (!articulos || articulos.length === 0) return '—';
+    const primeros = articulos.slice(0, 2);
+    const resumen = primeros.map(a => `${a.nombre || 'Producto'} x${a.cantidad || 1}`).join(', ');
+    if (articulos.length > 2) {
+      return `${resumen} y ${articulos.length - 2} más`;
+    }
+    return resumen;
+  }
+
   ngOnInit(): void {
-    // Nos suscribimos al estado de la sesión para cargar los pedidos apenas el admin entre
+    // Español: cargar IVA dinámico desde configuración | English: load dynamic VAT from config
+    this.configService.obtener().subscribe({
+      next: (resp) => {
+        if (resp.status === 'success') {
+          this.ivaDecimal = (resp.configuracion.porcentaje_iva || 19) / 100;
+        }
+      },
+      error: () => {
+        this.ivaDecimal = 0.19; // fallback
+      },
+    });
+
     this.sub = this.authService.sesionActiva$.subscribe(sesion => {
       if (sesion) {
         this.cargarTodosLosPedidos();
@@ -115,24 +116,18 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
     this.cargando = true;
     this.orderService.obtenerPedidos().subscribe({
       next: (res) => {
-        // Verificamos que la respuesta traiga la propiedad 'pedidos'
-        // Si no existe o es nula, asignamos un arreglo vacío
-        if (res && res.pedidos) {
-          this.pedidos = res.pedidos;
-        } else {
-          this.pedidos = [];
-        }
+        this.pedidos = res?.pedidos || [];
         this.cargando = false;
-        console.log('📦 Pedidos cargados con éxito:', this.pedidos.length);
       },
       error: (err) => {
         console.error('❌ Error al cargar pedidos:', err);
-        this.pedidos = []; // Mantenemos el arreglo vacío en caso de error
+        this.pedidos = [];
         this.cargando = false;
       }
     });
   }
 
+  // Español: cambiar estado del pedido | English: change order status
   cambiarEstado(pedido: Pedido, nuevoEstado: string): void {
     this.orderService.actualizarEstado(pedido.id, nuevoEstado).pipe(
       catchError(err => {
@@ -141,8 +136,31 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
       })
     ).subscribe(() => {
       pedido.estado = nuevoEstado;
-      this.lanzarToast(`✅ Estado actualizado: ${nuevoEstado}`);
+      this.lanzarToast(`✅ Estado actualizado: ${this.getEstadoLabel(nuevoEstado)}`);
     });
+  }
+
+  // Español: obtener etiqueta legible para un estado | English: readable label for a status
+  getEstadoLabel(estado: string | undefined): string {
+    const e = (estado || '').toUpperCase();
+    const mapa: Record<string, string> = {
+      'PENDIENTE': '⏳ Pendiente',
+      'EN_PREPARACION': '👨‍🍳 En Preparación',
+      'PAGADO': '✅ Pagado',
+      'PAGADA': '✅ Pagado',
+      'ENTREGADO': '✅ Entregado',
+      'LISTO': '✅ Listo',
+    };
+    return mapa[e] || estado || 'Pendiente';
+  }
+
+  // Español: clase CSS para el badge de estado | English: CSS class for status badge
+  getEstadoClase(estado: string | undefined): string {
+    const e = (estado || '').toLowerCase();
+    if (e === 'pendiente') return 'badge-pendiente';
+    if (e === 'en_preparacion') return 'badge-preparacion';
+    if (e === 'pagado' || e === 'pagada' || e === 'entregado' || e === 'listo') return 'badge-pagado';
+    return 'badge-default';
   }
 
   verDetalle(pedido: Pedido): void {
@@ -155,17 +173,23 @@ export class GestionPedidosComponent implements OnInit, OnDestroy {
     this.pedidoDetalle = null;
   }
 
-  // Español: usar subtotal/IVA calculados por el backend desde articulos_json | English: use subtotal/VAT calculated by backend from articulos_json
+  // Español: subtotal desde el backend (respuesta ya incluye IVA dinámico)
+  // English: subtotal from backend (response already includes dynamic VAT)
   subtotalPedido(pedido: Pedido): number {
     if (pedido.subtotal !== undefined) return pedido.subtotal;
-    // Español: fallback para pedidos antiguos sin subtotal en el payload | English: fallback for old orders without subtotal in payload
-    return Math.round((pedido.total ?? 0) / 1.19);
+    // Español: fallback con IVA dinámico | English: fallback with dynamic VAT
+    return Math.round((pedido.total ?? 0) / (1 + this.ivaDecimal));
   }
 
   ivaPedido(pedido: Pedido): number {
     if (pedido.iva !== undefined) return pedido.iva;
-    // Español: fallback para pedidos antiguos sin iva en el payload | English: fallback for old orders without iva in payload
+    // Español: fallback con IVA dinámico | English: fallback with dynamic VAT
     return Math.round((pedido.total ?? 0) - this.subtotalPedido(pedido));
+  }
+
+  // Español: porcentaje de IVA para mostrar en UI | English: VAT percentage for UI
+  get ivaPorcentaje(): number {
+    return Math.round(this.ivaDecimal * 100);
   }
 
   private lanzarToast(mensaje: string): void {

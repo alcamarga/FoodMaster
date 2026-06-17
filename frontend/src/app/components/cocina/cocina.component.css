@@ -1,6 +1,7 @@
 /* **Creado por:** Camilo Martinez Galarza (CMG-Solutions) */
-/* **Fecha:** 15 de junio de 2026 */
-/* Estilos de alto contraste para entorno de cocina | High-contrast styles for kitchen environment */
+/* **Fecha:** 17 de junio de 2026 */
+/* **Tarea #4:** Estilos para panel de cocina unificado (Mesa + Domicilio) */
+/* High-contrast styles for unified kitchen environment */
 
 .cocina-container {
   background: #1a1a1a;
@@ -24,20 +25,48 @@
   letter-spacing: 1px;
 }
 
-/* KPIs */
+/* KPIs del monitor (solo activos: Pendiente + En Preparación) | Monitor KPIs (only active) */
 .kpi-card {
   border-radius: 12px;
   color: #fff;
   font-weight: 700;
+  transition: transform 0.2s;
+}
+.kpi-card:hover {
+  transform: scale(1.02);
 }
 .kpi-pendientes { background: linear-gradient(135deg, #dc3545, #bb2d3b); }
 .kpi-cocinando { background: linear-gradient(135deg, #fd7e14, #e06b0a); }
-.kpi-listo { background: linear-gradient(135deg, #198754, #157347); }
-.kpi-numero { font-size: 2.2rem; font-weight: 800; line-height: 1; }
-.kpi-label { font-size: 0.8rem; text-transform: uppercase; opacity: 0.9; }
+.kpi-numero { font-size: 2.8rem; font-weight: 800; line-height: 1; }
+.kpi-label { font-size: 1rem; text-transform: uppercase; opacity: 0.9; letter-spacing: 1px; }
 
-/* Grid de comandas | Comandas grid */
-.comandas-grid {
+/* Filtros de origen | Origin filters */
+.filtros-origen {
+  display: flex;
+  gap: 8px;
+}
+.btn-filtro {
+  background: rgba(255,255,255,0.05);
+  color: #aaa;
+  border: 1px solid #444;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-filtro:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.btn-filtro.active {
+  background: #ffd700;
+  color: #1a1a1a;
+  border-color: #ffd700;
+}
+
+/* Grid de items | Items grid */
+.items-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 16px;
@@ -45,23 +74,26 @@
   margin: 0 auto;
 }
 
-/* Tarjeta de comanda | Comanda card */
-.comanda-card {
+/* Tarjeta de item | Item card */
+.item-card {
   background: #2a2a2a;
   border: 2px solid #444;
   border-radius: 16px;
   overflow: hidden;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-.comanda-card:hover {
+.item-card:hover {
   border-color: #ffd700;
   box-shadow: 0 4px 24px rgba(255, 215, 0, 0.15);
 }
 
-/* Estados de tarjeta con borde de color | Card states with colored border */
-.comanda-card.abierta { border-left: 6px solid #dc3545; }
-.comanda-card.en_preparacion { border-left: 6px solid #fd7e14; }
-.comanda-card.listo { border-left: 6px solid #198754; }
+/* Bordes laterales por estado (solo activos) | Side borders by state (active only) */
+.item-card.pendiente { border-left: 6px solid #dc3545; }
+.item-card.en_preparacion { border-left: 6px solid #fd7e14; }
+
+/* Bordes superiores sutiles por tipo | Subtle top borders by type */
+.item-card.mesa { border-top: 3px solid rgba(255, 215, 0, 0.3); }
+.item-card.domicilio { border-top: 3px solid rgba(13, 202, 240, 0.3); }
 
 /* Cabecera | Header */
 .card-header-cocina {
@@ -69,19 +101,52 @@
   padding: 12px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-.mesa-badge {
-  background: #ffd700;
-  color: #1a1a1a;
+
+/* Badge de origen | Origin badge */
+.origen-badge {
   font-weight: 800;
   font-size: 1.1rem;
   padding: 4px 12px;
   border-radius: 8px;
+  display: inline-block;
 }
-.comanda-id {
+.origen-mesa {
+  background: #ffd700;
+  color: #1a1a1a;
+}
+.origen-domicilio {
+  background: #0dcaf0;
+  color: #1a1a1a;
+}
+.item-id {
   color: #888;
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* Info del cliente (Domicilio) | Client info (Delivery) */
+.cliente-info {
+  background: rgba(13, 202, 240, 0.08);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 8px;
+}
+.dato-cliente {
+  display: flex;
+  gap: 6px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.dato-cliente .label {
+  color: #0dcaf0;
+  font-weight: 600;
+  min-width: 70px;
+}
+.dato-cliente .valor {
+  color: #e0e0e0;
+}
+
+/* Tiempo badge | Time badge */
 .tiempo-badge {
   font-size: 0.85rem;
   font-weight: 700;
@@ -105,7 +170,6 @@
 }
 .estado-nuevo { background: rgba(220,53,69,0.2); color: #ff6b6b; }
 .estado-cocinando { background: rgba(253,126,20,0.2); color: #ffc107; }
-.estado-listo { background: rgba(25,135,84,0.2); color: #75b798; }
 
 /* Artículos | Items */
 .card-articulos {
@@ -145,11 +209,11 @@
 .btn-preparar:hover {
   box-shadow: 0 4px 16px rgba(220, 53, 69, 0.4);
 }
-.btn-listo {
+.btn-despachar {
   background: linear-gradient(135deg, #198754, #157347);
   color: #fff;
 }
-.btn-listo:hover {
+.btn-despachar:hover {
   box-shadow: 0 4px 16px rgba(25, 135, 84, 0.4);
 }
 

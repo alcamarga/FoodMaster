@@ -1,6 +1,16 @@
 from models.database import db
 from datetime import datetime
 
+
+def _iva_decimal():
+    """Obtiene el IVA como decimal desde la configuración del negocio."""
+    try:
+        from models.configuracion import Configuracion
+        return Configuracion.obtener_iva_decimal()
+    except Exception:
+        return 0.19  # fallback
+
+
 class Pedido(db.Model):
     __tablename__ = 'pedido'
     id = db.Column(db.Integer, primary_key=True)
@@ -40,12 +50,14 @@ class Pedido(db.Model):
                 float(a.get('precio', a.get('precio_unitario', 0))) * float(a.get('cantidad', 1))
                 for a in articulos_lista
             )
-            iva_calculado = round(subtotal_calculado * 0.19)
+            iva_decimal = _iva_decimal()
+            iva_calculado = round(subtotal_calculado * iva_decimal)
             total_calculado = subtotal_calculado + iva_calculado
         except Exception:
             # Español: fallback al total almacenado (pedidos antiguos sin artículos o malformados) | English: fallback to stored total (legacy orders without items or malformed)
+            iva_decimal = _iva_decimal()
             total_calculado = float(self.total) if self.total else 0
-            subtotal_calculado = round(total_calculado / 1.19)
+            subtotal_calculado = round(total_calculado / (1 + iva_decimal))
             iva_calculado = total_calculado - subtotal_calculado
 
         resultado = {

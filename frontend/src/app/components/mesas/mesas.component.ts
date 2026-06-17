@@ -306,6 +306,36 @@ export class MesasComponent implements OnInit {
     this.historialComandas.set([]);
   }
 
+  // Español: la comanda está lista para pago (solo cuando cocina despachó) | English: comanda ready for payment (only when kitchen dispatched it)
+  readonly comandaListaParaPago = computed(() => {
+    const comanda = this.comandaActiva();
+    return comanda?.estado === 'listo';
+  });
+
+  // Español: etiqueta legible del estado de cocina | English: human-readable kitchen state label
+  getEstadoLabel(estado: string): string {
+    const labels: Record<string, string> = {
+      'abierta': '🆕 Abierta',
+      'en_preparacion': '👨‍🍳 En Cocina',
+      'listo': '📦 Listo para servir',
+      'pagada': '✅ Pagada',
+      'cerrada': '🔒 Cerrada',
+    };
+    return labels[estado] || estado;
+  }
+
+  // Español: clase CSS para el badge de estado | English: CSS class for estado badge
+  getEstadoClase(estado: string): string {
+    const clases: Record<string, string> = {
+      'abierta': 'badge bg-warning text-dark',
+      'en_preparacion': 'badge bg-info text-white',
+      'listo': 'badge bg-success',
+      'pagada': 'badge bg-success',
+      'cerrada': 'badge bg-secondary',
+    };
+    return clases[estado] || 'badge bg-secondary';
+  }
+
   // Calcular subtotal de artículos | Calculate subtotal of items
   calcularSubtotal(articulos: IArticuloComanda[]): number {
     return articulos.reduce((total, art) => total + art.precio * art.cantidad, 0);

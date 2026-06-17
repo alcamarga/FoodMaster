@@ -1,7 +1,7 @@
 <div class="gestion-container">
   <div class="header">
     <h2>📋 Gestión de Pedidos</h2>
-    <p>Control de flujo y estados de venta</p>
+    <p>Control de flujo — Subtotal e IVA calculados dinámicamente desde artículos (IVA {{ ivaPorcentaje }}%)</p>
   </div>
 
   <div *ngIf="cargando" class="loading">
@@ -9,11 +9,11 @@
     <p class="text-white mt-2">Cargando pedidos...</p>
   </div>
 
-  <!-- Español: filtro de tipo de pedido | English: order type filter -->
+  <!-- Filtro de tipo de pedido | Order type filter -->
   <div *ngIf="!cargando" class="d-flex align-items-center gap-3 mb-3 flex-wrap">
     <span class="text-white-50 small">🔍 Filtrar por tipo:</span>
     <div class="btn-group btn-group-sm" role="group">
-      <button class="btn" [class.btn-warning]="filtroTipo === 'todos'" [class.btn-outline-secondary]="filtroTipo !== 'todos'" (click)="filtroTipo = 'todos'">📋 Todos</button>
+      <button class="btn" [class.btn-warning]="filtroTipo === 'todos'" [class.btn-outline-secondary]="filtroTipo !== 'todos'" (click)="filtroTipo = 'todos'">📋 Todos ({{ pedidos.length }})</button>
       <button class="btn" [class.btn-warning]="filtroTipo === 'mesa'" [class.btn-outline-secondary]="filtroTipo !== 'mesa'" (click)="filtroTipo = 'mesa'">🪑 Mesa</button>
       <button class="btn" [class.btn-warning]="filtroTipo === 'domicilio'" [class.btn-outline-secondary]="filtroTipo !== 'domicilio'" (click)="filtroTipo = 'domicilio'">🚚 Domicilio</button>
     </div>
@@ -23,12 +23,12 @@
     <table class="admin-table">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>#</th>
           <th>Fecha</th>
-          <th>Cliente</th>
-          <th>Tipo</th>
+          <th>Cliente / Origen</th>
+          <th>Productos</th>
           <th class="text-end">Subtotal</th>
-          <th class="text-end">IVA</th>
+          <th class="text-end">IVA ({{ ivaPorcentaje }}%)</th>
           <th class="text-end">Total</th>
           <th>Estado</th>
           <th class="text-center">Detalle</th>
@@ -37,29 +37,28 @@
       <tbody>
         <tr *ngFor="let p of pedidosFiltrados">
           <td class="fw-bold text-warning">#{{ p.id }}</td>
-          <td class="text-white-50 small">{{ p.fecha_hora || p.fecha || '—' }}</td>
-          <td>{{ p.cliente || ('User #' + p.usuario_id) }}</td>
+          <td class="text-white-50 small">{{ (p.fecha_hora || p.fecha || '—') | date:'dd/MM HH:mm' }}</td>
           <td>
-            <span class="tipo-badge" [class]="getTipoClase(p)">{{ getTipoLabel(p) }}</span>
+            <div class="d-flex flex-column">
+              <span>{{ getClienteLabel(p) }}</span>
+              <span class="tipo-badge" [class]="getTipoClase(p)">{{ getTipoLabel(p) }}</span>
+            </div>
+          </td>
+          <td class="small text-white-50" style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <span [title]="getResumenProductos(p.articulos)">{{ getResumenProductos(p.articulos) }}</span>
           </td>
           <td class="text-end text-white-50">${{ subtotalPedido(p) | number:'1.0-0' }}</td>
           <td class="text-end text-white-50 small">${{ ivaPedido(p) | number:'1.0-0' }}</td>
           <td class="text-end price fw-bold">${{ p.total | number:'1.0-0' }}</td>
           <td>
-            <select class="form-select form-select-sm font-weight-bold"
+            <select class="form-select form-select-sm estado-select"
                     [value]="(p.estado || 'PENDIENTE') | uppercase"
                     (change)="cambiarEstado(p, $any($event.target).value)"
-                    [ngClass]="{
-                      'bg-warning text-dark': !p.estado || p.estado === 'Pendiente' || p.estado === 'PENDIENTE' || p.estado === 'pendiente',
-                      'bg-info text-white': p.estado === 'Preparando' || p.estado === 'PREPARANDO' || p.estado === 'preparando',
-                      'bg-success text-white': p.estado === 'Entregado' || p.estado === 'ENTREGADO' || p.estado === 'entregado',
-                      'bg-danger text-white': p.estado === 'Cancelado' || p.estado === 'CANCELADO' || p.estado === 'cancelado'
-                    }"
+                    [ngClass]="getEstadoClase(p.estado)"
                     style="font-size: 0.85rem; padding: 6px 10px; border: none; border-radius: 4px; width: 100%; cursor: pointer;">
-              <option value="PENDIENTE" class="bg-dark text-white">PENDIENTE</option>
-              <option value="PREPARANDO" class="bg-dark text-white">PREPARANDO</option>
-              <option value="ENTREGADO" class="bg-dark text-white">ENTREGADO</option>
-              <option value="CANCELADO" class="bg-dark text-white">CANCELADO</option>
+              <option value="PENDIENTE" class="bg-dark text-white">⏳ Pendiente</option>
+              <option value="EN_PREPARACION" class="bg-dark text-white">👨‍🍳 En Preparación</option>
+              <option value="PAGADO" class="bg-dark text-white">✅ Pagado</option>
             </select>
           </td>
           <td class="text-center">
@@ -84,6 +83,7 @@
   </div>
 </div>
 
+<!-- Modal Detalle de Pedido | Order Detail Modal -->
 <div class="modal-overlay" *ngIf="mostrarDetalle" (click)="cerrarDetalle()">
   <div class="modal-detalle" (click)="$event.stopPropagation()">
 
@@ -94,12 +94,21 @@
 
     <div class="modal-detalle-body" *ngIf="pedidoDetalle">
 
+      <!-- Meta info del pedido -->
       <div class="detalle-meta">
-        <span>📅 {{ pedidoDetalle.fecha_hora || pedidoDetalle.fecha || '—' }}</span>
-        <span>👤 {{ pedidoDetalle.cliente || ('User #' + pedidoDetalle.usuario_id) }}</span>
-        <span class="badge-estado">{{ pedidoDetalle.estado || 'Pendiente' }}</span>
+        <span>📅 {{ (pedidoDetalle.fecha_hora || pedidoDetalle.fecha || '—') | date:'dd/MM/yyyy HH:mm' }}</span>
+        <span>👤 {{ getClienteLabel(pedidoDetalle) }}</span>
+        <span class="tipo-badge" [class]="getTipoClase(pedidoDetalle)">{{ getTipoLabel(pedidoDetalle) }}</span>
+        <span class="badge-estado" [ngClass]="getEstadoClase(pedidoDetalle.estado)">{{ getEstadoLabel(pedidoDetalle.estado) }}</span>
       </div>
 
+      <!-- Dirección de entrega (solo domicilio) -->
+      <div *ngIf="getTipoPedido(pedidoDetalle) === 'domicilio' && pedidoDetalle.direccion_entrega" class="detalle-direccion">
+        <span class="small">📍 {{ pedidoDetalle.direccion_entrega }}</span>
+        <span *ngIf="pedidoDetalle.telefono_contacto" class="small ms-3">📞 {{ pedidoDetalle.telefono_contacto }}</span>
+      </div>
+
+      <!-- Tabla de productos -->
       <table class="detalle-table" *ngIf="pedidoDetalle.articulos && pedidoDetalle.articulos.length > 0">
         <thead>
           <tr>
@@ -113,7 +122,7 @@
         <tbody>
           <tr *ngFor="let art of pedidoDetalle.articulos">
             <td class="fw-bold">{{ art.nombre || art.producto_nombre || 'Artículo' }}</td>
-            <td class="text-center text-white-50">{{ art.tamano || 'N/A' }}</td>
+            <td class="text-center text-white-50">{{ art.tamano || '—' }}</td>
             <td class="text-center">{{ art.cantidad || 1 }}</td>
             <td class="text-end text-white-50">${{ (art.precio || art.precio_unitario || 0) | number:'1.0-0' }}</td>
             <td class="text-end text-warning fw-bold">${{ ((art.precio || art.precio_unitario || 0) * (art.cantidad || 1)) | number:'1.0-0' }}</td>
@@ -121,19 +130,21 @@
         </tbody>
       </table>
 
+      <!-- Fallback si no hay artículos -->
       <div *ngIf="!pedidoDetalle.articulos || pedidoDetalle.articulos.length === 0"
            class="text-center text-muted py-3">
         <span *ngIf="pedidoDetalle.pizzas">{{ pedidoDetalle.pizzas }}</span>
         <span *ngIf="!pedidoDetalle.pizzas">Sin detalle de productos disponible.</span>
       </div>
 
+      <!-- Totales -->
       <div class="detalle-totales">
         <div class="detalle-fila">
           <span>Subtotal</span>
           <span>${{ subtotalPedido(pedidoDetalle) | number:'1.0-0' }}</span>
         </div>
         <div class="detalle-fila text-muted small">
-          <span>IVA (19%)</span>
+          <span>IVA ({{ ivaPorcentaje }}%)</span>
           <span>${{ ivaPedido(pedidoDetalle) | number:'1.0-0' }}</span>
         </div>
         <div class="detalle-fila total-final">

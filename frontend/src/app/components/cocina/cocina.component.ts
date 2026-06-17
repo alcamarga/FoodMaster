@@ -1,8 +1,11 @@
 // **Creado por:** Camilo Martinez Galarza (CMG-Solutions)
-// **Fecha:** 15 de junio de 2026
-// **Estado:** Desarrollo
+// **Fecha:** 17 de junio de 2026
+// **Estado:** Producción — Tarea #7: Monitor de Cocina
 
-// Componente standalone para el módulo de cocina | Standalone component for the kitchen module
+// Componente standalone para el Monitor de Cocina (KDS)
+// Muestra SOLO pedidos activos (Pendiente + En Preparación) de Mesa y Domicilio
+// Los items 'Despachado' desaparecen del monitor y se consolidan en Gestión de Pedidos al pagar
+// Accesible solo para roles: Administrador y Cocinero
 
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -12,21 +15,35 @@ import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
 
-// Interfaces locales para comandas de cocina | Local interfaces for kitchen comandas
-interface IComandaCocina {
+// Interfaz unificada para items de cocina (Mesa + Domicilio)
+// Unified interface for kitchen items (Dine-in + Delivery)
+interface IItemCocina {
   id: number;
-  mesa_id: number;
-  numero_mesa: number;
+  tipo: 'mesa' | 'domicilio';
+  origen: string;           // "Mesa #5" o "🛵 Domicilio - Juan"
+  origen_detalle: string;   // Texto más descriptivo
+  cliente_nombre: string | null;
+  direccion_entrega: string;
+  telefono_contacto: string;
+  mesa_id: number | null;
+  numero_mesa: number | null;
   fecha: string;
-  total: number;
-  estado: string;
+  estado: string;           // 'pendiente' | 'en_preparacion' | 'despachado'
+  estado_modelo: string;    // Estado real en BD
   articulos: { producto_id?: number; nombre: string; precio: number; cantidad: number }[];
-  tiempo_espera?: string; // Tiempo transcurrido formateado | Elapsed time formatted
+  total: number;
+  usuario_id: number | null;
+  tiempo_espera?: string;
 }
 
-interface IRespuestaComandas {
+interface IRespuestaCocina {
   status: string;
-  comandas: IComandaCocina[];
+  items: IItemCocina[];
+  totales: {
+    pendientes: number;
+    en_preparacion: number;
+  };
+  total_items: number;
 }
 
 @Component({
@@ -43,24 +60,33 @@ export class CocinaComponent implements OnInit, OnDestroy {
   private apiUrl = environment.apiUrl;
 
   // Español: estado reactivo | English: reactive state
-  comandas = signal<IComandaCocina[]>([]);
+  items = signal<IItemCocina[]>([]);
   cargando = signal(true);
   error = signal<string | null>(null);
   mensajeExito = signal<string | null>(null);
 
-  // Español: totales del dashboard | English: dashboard totals
-  totalPendientes = computed(() => this.comandas().length);
-  totalEnPreparacion = computed(() => this.comandas().filter(c => c.estado === 'en_preparacion').length);
-  totalListos = computed(() => this.comandas().filter(c => c.estado === 'listo').length);
+  // Español: totales del monitor de cocina (solo estados activos: pendiente + en_preparacion)
+  // English: kitchen monitor totals (only active states: pendiente + en_preparacion)
+  totalPendientes = computed(() => this.items().filter(i => i.estado === 'pendiente').length);
+  totalEnPreparacion = computed(() => this.items().filter(i => i.estado === 'en_preparacion').length);
+  totalItems = computed(() => this.items().length);
+
+  // Español: filtro por origen | English: origin filter
+  filtroOrigen = signal<string | null>(null); // null = todos, 'mesa', 'domicilio'
+  itemsFiltrados = computed(() => {
+    const filtro = this.filtroOrigen();
+    if (!filtro) return this.items();
+    return this.items().filter(i => i.tipo === filtro);
+  });
 
   // Español: intervalos de refresco automático | English: auto-refresh intervals
   private intervalRefresco: ReturnType<typeof setInterval> | null = null;
   private intervalTiempo: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
-    this.cargarComandas();
-    // Español: refrescar comandas cada 15 segundos | English: refresh comandas every 15 seconds
-    this.intervalRefresco = setInterval(() => this.cargarComandas(), 15000);
+    this.cargarItems();
+    // Español: refrescar cada 15 segundos | English: refresh every 15 seconds
+    this.intervalRefresco = setInterval(() => this.cargarItems(), 15000);
     // Español: actualizar tiempos de espera cada 30 segundos | English: update wait times every 30 seconds
     this.intervalTiempo = setInterval(() => this.actualizarTiemposEspera(), 30000);
   }
@@ -70,30 +96,31 @@ export class CocinaComponent implements OnInit, OnDestroy {
     if (this.intervalTiempo) clearInterval(this.intervalTiempo);
   }
 
-  // Español: cargar comandas activas desde el backend | English: load active comandas from backend
-  cargarComandas(): void {
-    this.http.get<IRespuestaComandas>(`${this.apiUrl}/comandas/activas`).subscribe({
+  // Español: cargar items desde el endpoint unificado de cocina
+  // English: load items from the unified kitchen endpoint
+  cargarItems(): void {
+    this.http.get<IRespuestaCocina>(`${this.apiUrl}/kitchen/pendientes`).subscribe({
       next: (respuesta) => {
         if (respuesta.status === 'success') {
-          this.comandas.set(respuesta.comandas);
+          this.items.set(respuesta.items);
           this.actualizarTiemposEspera();
         }
         this.cargando.set(false);
       },
       error: (err) => {
-        console.error('[Cocina] Error al cargar comandas:', err);
-        this.error.set('Error al cargar las comandas activas. Verifica la conexión.');
+        console.error('[Cocina] Error al cargar items:', err);
+        this.error.set('Error al cargar los pedidos de cocina. Verifica la conexión.');
         this.cargando.set(false);
       },
     });
   }
 
-  // Español: actualizar tiempos de espera de cada comanda | English: update wait times for each comanda
+  // Español: actualizar tiempos de espera | English: update wait times
   private actualizarTiemposEspera(): void {
-    this.comandas.update(comandas =>
-      comandas.map(c => ({
-        ...c,
-        tiempo_espera: this.calcularTiempoEspera(c.fecha),
+    this.items.update(items =>
+      items.map(item => ({
+        ...item,
+        tiempo_espera: this.calcularTiempoEspera(item.fecha),
       }))
     );
   }
@@ -123,13 +150,16 @@ export class CocinaComponent implements OnInit, OnDestroy {
     return 'normal';
   }
 
-  // Español: actualizar estado de una comanda | English: update comanda status
-  cambiarEstadoComanda(comandaId: number, nuevoEstado: string): void {
-    this.http.put(`${this.apiUrl}/comandas/${comandaId}/estado`, { estado: nuevoEstado }).subscribe({
+  // Español: actualizar estado de un item (comanda o pedido) | English: update item status
+  cambiarEstado(item: IItemCocina, nuevoEstado: string): void {
+    this.http.put(`${this.apiUrl}/kitchen/${item.id}/estado`, {
+      tipo: item.tipo,
+      estado: nuevoEstado,
+    }).subscribe({
       next: (respuesta: any) => {
         if (respuesta.status === 'success') {
           this.mensajeExito.set(`✅ ${respuesta.message}`);
-          this.cargarComandas();
+          this.cargarItems();
           setTimeout(() => this.mensajeExito.set(null), 3000);
         }
       },
@@ -141,14 +171,19 @@ export class CocinaComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Español: marcar comanda como "en preparación" | English: mark comanda as "in preparation"
-  iniciarPreparacion(comandaId: number): void {
-    this.cambiarEstadoComanda(comandaId, 'en_preparacion');
+  // Español: iniciar preparación | English: start preparation
+  iniciarPreparacion(item: IItemCocina): void {
+    this.cambiarEstado(item, 'en_preparacion');
   }
 
-  // Español: marcar comanda como "listo para servir" | English: mark comanda as "ready to serve"
-  marcarListo(comandaId: number): void {
-    this.cambiarEstadoComanda(comandaId, 'listo');
+  // Español: marcar como despachado (listo) | English: mark as dispatched (ready)
+  marcarDespachado(item: IItemCocina): void {
+    this.cambiarEstado(item, 'despachado');
+  }
+
+  // Español: establecer filtro por origen | English: set origin filter
+  setFiltroOrigen(origen: string | null): void {
+    this.filtroOrigen.set(origen);
   }
 
   // Español: volver al menú principal | English: return to main menu

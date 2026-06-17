@@ -26,9 +26,18 @@ Asistente de Arquitectura: Gemini/Cami
 [x] Auditoría de totales — backend recalcula total/subtotal/IVA desde artículos.
 [x] Caja module: excluir Pedidos de mesa para evitar doble conteo con Comandas.
 [x] Limpieza profunda de BD: reset total con preservación de admin.
+[x] **Tarea #3: Corrección de Identidad del Usuario** — user_id ahora se extrae del JWT en abrir_comanda y crear_pedido. Ya no aparece como 'undefined'.
+[x] **Tarea #4: Implementación del Flujo de Cocina (KDS) para Mesas y Domicilios** — Endpoint unificado /api/kitchen/pendientes con origen Mesa/Domicilio, estados pendiente→en_preparacion→despachado. Frontend CocinaComponent actualizado con filtros y badges diferenciados.
+[x] **Tarea #5: Configuración y Personalización del Negocio** — Modelo Configuracion (singleton), CRUD en /api/configuracion, IVA dinámico desde BD en pedidos, frontend con formulario en Admin Dashboard. Pendiente: usar datos en tickets/facturas.
+[x] **Tarea #6: Refinamiento de la Gestión de Pedidos** — Tabla profesional con detalle de productos, estados Pendiente/En Preparación/Pagado, IVA dinámico, fix de "User #undefined", columna de resumen de productos, modal con dirección de entrega.
 
 🟡 En Progreso (Doing)
-[ ] **Tarea #3: Corrección de Identidad del Usuario** — Asegurar que el ID del usuario logueado se capture correctamente en todos los procesos: creación de productos, mesas, pedidos y comandas. Pendiente de implementar.
+
+[x] **Tarea #7: Monitor de Cocina (vista independiente)**
+    - [x] Backend: Validación de roles (admin, cocinero) en endpoints de cocina
+    - [x] Backend: Filtrar solo estados activos (Pendiente + En Preparación), excluir Despachado
+    - [x] Frontend: Refinar CocinaComponent como "Monitor de Cocina" con KPIs simplificados
+    - [x] Pruebas de endpoint: acceso con/sin token, sin despachados en respuesta ✅
 
 🔴 Pendiente (To Do)
 [ ] Implementar actualización de estados de pedidos.

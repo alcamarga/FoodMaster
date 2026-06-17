@@ -98,6 +98,7 @@
               <th>Artículos</th>
               <th class="text-end">Total</th>
               <th>Estado</th>
+              <th class="text-center">Detalle</th>
             </tr>
           </thead>
           <tbody>
@@ -130,10 +131,15 @@
                     <span class="badge bg-secondary">{{ venta.estado }}</span>
                   }
                 </td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-warning fw-bold" (click)="abrirDetalle(venta)" title="Ver detalle de la venta">
+                    🔍 Ver
+                  </button>
+                </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="7" class="text-center text-muted py-4">
+                <td colspan="8" class="text-center text-muted py-4">
                   No hay ventas registradas para esta fecha.
                 </td>
               </tr>
@@ -304,6 +310,100 @@
           <button class="btn btn-outline-light" (click)="cerrarModalCierre()">Cerrar</button>
         </div>
       }
+    </div>
+  </div>
+}
+
+<!-- Modal de detalle de venta | Sale detail modal -->
+@if (mostrarDetalleVenta && ventaDetalle(); as venta) {
+  <div class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal-content modal-detalle-venta" (click)="$event.stopPropagation()">
+
+      <div class="modal-finanzas-header">
+        <h3 class="mb-0">📄 Detalle de Venta #{{ venta.id }}</h3>
+        <button class="btn-cerrar" (click)="cerrarDetalle()">✕</button>
+      </div>
+
+      <div class="modal-finanzas-body">
+        <!-- Meta info de la venta -->
+        <div class="detalle-meta d-flex gap-3 flex-wrap align-items-center mb-3">
+          <span class="text-white-50 small">📅 {{ formatearFecha(venta.fecha) }}</span>
+          <span>
+            @if (venta.origen === 'Domicilio') {
+              <span class="tipo-badge badge-mesa">🏠 {{ venta.origen }}</span>
+            } @else {
+              <span class="tipo-badge badge-mesa">🍽️ {{ venta.origen }}</span>
+            }
+          </span>
+          <span>
+            @if (venta.tipo === 'pedido') {
+              <span class="badge bg-info">Pedido</span>
+            } @else {
+              <span class="badge bg-warning text-dark">Comanda</span>
+            }
+          </span>
+          <span>
+            @if (venta.estado === 'pagada' || venta.estado === 'entregado') {
+              <span class="badge bg-success">Pagado ✅</span>
+            } @else if (venta.estado === 'pendiente') {
+              <span class="badge bg-warning text-dark">Pendiente 🟡</span>
+            } @else {
+              <span class="badge bg-secondary">{{ venta.estado }}</span>
+            }
+          </span>
+        </div>
+
+        <!-- Tabla de artículos -->
+        @if (venta.articulos && venta.articulos.length > 0) {
+          <table class="table table-dark table-sm table-borderless">
+            <thead>
+              <tr>
+                <th class="text-white-50 small">Producto</th>
+                <th class="text-center text-white-50 small">Cant.</th>
+                <th class="text-end text-white-50 small">Precio</th>
+                <th class="text-end text-white-50 small">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (art of venta.articulos; track $index) {
+                <tr>
+                  <td class="fw-bold">{{ art.nombre || art.producto_nombre || 'Artículo' }}</td>
+                  <td class="text-center">{{ art.cantidad || 1 }}</td>
+                  <td class="text-end text-white-50">${{ (art.precio || art.precio_unitario || 0) | number:'1.0-0' }}</td>
+                  <td class="text-end text-warning fw-bold">${{ ((art.precio || art.precio_unitario || 0) * (art.cantidad || 1)) | number:'1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="text-center text-muted py-4">
+            Sin detalle de productos disponible.
+          </div>
+        }
+
+        <!-- Totales -->
+        <div class="detalle-totales mt-3 p-3" style="background: rgba(0,0,0,0.3); border-radius: 10px; border: 1px solid rgba(40,167,69,0.15);">
+          @let subtotal = calcularSubtotal(venta.articulos);
+          @let iva = calcularIVA(subtotal);
+          <div class="d-flex justify-content-between">
+            <span class="text-muted">Subtotal</span>
+            <span class="text-white-50">${{ subtotal | number:'1.0-0' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mt-1">
+            <span class="text-muted">IVA (19%)</span>
+            <span class="text-white-50 small">${{ iva | number:'1.0-0' }}</span>
+          </div>
+          <hr class="border-secondary my-2">
+          <div class="d-flex justify-content-between">
+            <span class="fw-bold text-white">Total</span>
+            <span class="fw-bold text-success">${{ venta.total | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-finanzas-footer d-flex justify-content-end">
+        <button class="btn btn-outline-light" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
     </div>
   </div>
 }

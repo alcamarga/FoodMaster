@@ -26,7 +26,7 @@ export interface IComanda {
   usuario_id?: number | null;
   fecha: string;
   total: number;
-  estado: 'abierta' | 'pagada' | 'cerrada';
+  estado: 'abierta' | 'en_preparacion' | 'listo' | 'pagada' | 'cerrada';
   articulos: IArticuloComanda[];
 }
 

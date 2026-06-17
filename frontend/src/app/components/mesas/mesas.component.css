@@ -259,6 +259,49 @@
   background: rgba(212, 175, 55, 0.5);
 }
 
+/* ===== Estado badges en modal | State badges in modal ===== */
+.comanda-info .badge {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.comanda-info .bg-info {
+  background: #0d5e8a !important;
+  color: #0dcaf0 !important;
+  border: 1px solid rgba(13, 202, 240, 0.3);
+}
+
+.comanda-info .bg-success {
+  background: #14532d !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+/* ===== Botones de pago deshabilitados | Disabled payment buttons ===== */
+.comanda-acciones .btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed !important;
+  filter: grayscale(0.7);
+}
+
+.comanda-acciones .btn-pago-efectivo:disabled,
+.comanda-acciones .btn-pago-transf:disabled {
+  background: #333 !important;
+  color: #666 !important;
+  border-color: #444 !important;
+}
+
+/* ===== Advertencia de comanda bloqueada | Blocked comanda warning ===== */
+.alert-warning {
+  background: rgba(255, 193, 7, 0.1) !important;
+  border: 1px solid rgba(255, 193, 7, 0.2) !important;
+  color: #ffc107 !important;
+  border-radius: 8px;
+}
+
 /* Responsive: en móviles, grid más pequeño | Responsive: smaller grid on mobile */
 @media (max-width: 576px) {
   .mesas-grid {

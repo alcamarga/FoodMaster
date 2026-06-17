@@ -21,6 +21,9 @@ from routes.mesa_routes import mesa_bp
 from routes.grupo_producto_routes import grupo_producto_bp, verificar_esquema_grupo, sembrar_grupos
 from routes.caja_routes import caja_bp
 from routes.delivery_routes import delivery_bp
+from routes.kitchen_routes import kitchen_bp
+from routes.configuracion_routes import config_bp
+from models.configuracion import Configuracion
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -55,10 +58,12 @@ app.register_blueprint(mesa_bp, url_prefix='/api')
 app.register_blueprint(grupo_producto_bp, url_prefix='/api')
 app.register_blueprint(caja_bp, url_prefix='/api')
 app.register_blueprint(delivery_bp, url_prefix='/api')
+app.register_blueprint(kitchen_bp, url_prefix='/api')
+app.register_blueprint(config_bp, url_prefix='/api')
 
 @app.route('/')
 def index():
-    return "<h1>¡PizzaOS con Postgres Funcionando!</h1><p>Sistema Modular Activo</p>"
+    return "<h1>🍕 FoodMaster — Sistema Activo</h1><p>100% autónomo con base de datos local SQLite</p>"
 
 @app.route('/api/seed', methods=['GET'])
 def trigger_seed():
@@ -84,7 +89,10 @@ def trigger_seed():
             )
             db.session.add(admin)
             
-        # 3. Productos básicos para prueba
+        # 4. Configuración por defecto | Default configuration
+        Configuracion.obtener()
+
+        # 5. Productos básicos para prueba
         if not Producto.query.filter_by(nombre='Pizza Tradicional').first():
             p1 = Producto(nombre='Pizza Tradicional', descripcion='Clásica Azure', categoria='Pizza', precio_base=20000, precio_pequena=20000)
             db.session.add(p1)
@@ -131,5 +139,9 @@ if __name__ == '__main__':
 
         # Sembrar grupos por defecto | Seed default groups
         sembrar_grupos()
+
+        # Español: crear configuración por defecto si no existe | English: create default config if not exists
+        Configuracion.obtener()
+        print("✅ [DB] Configuración del negocio verificada.")
 
     app.run(debug=True, host='0.0.0.0', port=5000)

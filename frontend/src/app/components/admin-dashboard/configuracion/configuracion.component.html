@@ -1,0 +1,131 @@
+<!--
+  **Tarea #5:** Configuración y Personalización del Negocio
+  Formulario para gestionar nombre, IVA, moneda y datos de contacto del negocio
+-->
+
+<div class="config-container">
+  <div class="config-card">
+    <div class="config-header">
+      <h2 class="config-title">⚙️ Configuración del Negocio</h2>
+      <p class="config-subtitle">Personaliza los datos de tu restaurante — estos valores se usan globalmente en facturas, tickets y cálculos del sistema.</p>
+    </div>
+
+    <!-- Indicador de carga -->
+    @if (cargando()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-warning" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="text-white-50 mt-2">Cargando configuración...</p>
+      </div>
+    }
+
+    <!-- Formulario -->
+    @if (!cargando() && config(); as cfg) {
+      <form (ngSubmit)="guardar()" class="config-form">
+        <!-- Sección: Datos del Negocio -->
+        <div class="form-section">
+          <h3 class="section-title">🏪 Datos del Negocio</h3>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label text-white fw-semibold">Nombre del Negocio *</label>
+              <input type="text" class="form-control config-input" [(ngModel)]="cfg.nombre_negocio" name="nombre_negocio"
+                placeholder="Ej: Pizzería FoodMaster" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-white fw-semibold">Dirección</label>
+              <input type="text" class="form-control config-input" [(ngModel)]="cfg.direccion" name="direccion"
+                placeholder="Cra 7 # 12-34, Bogotá" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-white fw-semibold">Teléfono</label>
+              <input type="text" class="form-control config-input" [(ngModel)]="cfg.telefono" name="telefono"
+                placeholder="+57 300 123 4567" />
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-white fw-semibold">Email</label>
+              <input type="email" class="form-control config-input" [(ngModel)]="cfg.email" name="email"
+                placeholder="info@pizzeria.com" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Moneda e Impuestos -->
+        <div class="form-section">
+          <h3 class="section-title">💰 Moneda e Impuestos</h3>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label text-white fw-semibold">Moneda</label>
+              <select class="form-select config-input" [(ngModel)]="cfg.moneda" name="moneda">
+                <option value="COP">COP — Peso Colombiano</option>
+                <option value="USD">USD — Dólar Americano</option>
+                <option value="EUR">EUR — Euro</option>
+                <option value="MXN">MXN — Peso Mexicano</option>
+                <option value="ARS">ARS — Peso Argentino</option>
+                <option value="CLP">CLP — Peso Chileno</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label text-white fw-semibold">Símbolo</label>
+              <input type="text" class="form-control config-input text-center fs-4 fw-bold" [(ngModel)]="cfg.simbolo_moneda"
+                name="simbolo_moneda" placeholder="$" maxlength="5" />
+            </div>
+            <div class="col-md-5">
+              <label class="form-label text-white fw-semibold">
+                IVA (%) — Actual: <span class="badge bg-warning text-dark fs-6">{{ cfg.porcentaje_iva }}%</span>
+              </label>
+              <div class="input-group">
+                <input type="number" class="form-control config-input" [(ngModel)]="cfg.porcentaje_iva"
+                  name="porcentaje_iva" min="0" max="100" step="0.5" />
+                <span class="input-group-text config-input-append">%</span>
+              </div>
+              <small class="text-white-50">El IVA se usa en el cálculo automático de pedidos y facturas.</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Personalización -->
+        <div class="form-section">
+          <h3 class="section-title">📝 Personalización</h3>
+          <div class="row">
+            <div class="col-12">
+              <label class="form-label text-white fw-semibold">Mensaje en tickets / facturas</label>
+              <textarea class="form-control config-input" [(ngModel)]="cfg.mensaje_pie" name="mensaje_pie"
+                rows="2" placeholder="¡Gracias por su visita!"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensajes -->
+        @if (error(); as err) {
+          <div class="alert alert-danger py-2 mt-3">
+            ⚠️ {{ err }}
+          </div>
+        }
+        @if (mensajeExito(); as msg) {
+          <div class="alert alert-success py-2 mt-3">
+            {{ msg }}
+          </div>
+        }
+
+        <!-- Botones -->
+        <div class="d-flex gap-3 mt-4">
+          <button type="submit" class="btn btn-guardar" [disabled]="guardando()">
+            @if (guardando()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Guardando...
+            } @else {
+              💾 Guardar Cambios
+            }
+          </button>
+          <button type="button" class="btn btn-cancelar" (click)="cancelar()" [disabled]="guardando()">
+            ↩️ Cancelar
+          </button>
+          <button type="button" class="btn btn-recargar ms-auto" (click)="cargarConfiguracion()" [disabled]="guardando()">
+            🔄 Recargar
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

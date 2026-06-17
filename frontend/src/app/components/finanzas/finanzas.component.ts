@@ -84,6 +84,10 @@ export class FinanzasComponent implements OnInit {
   // Resultado del cierre | Closure result
   resultadoCierre = signal<IResumenCierre | null>(null);
 
+  // Español: estado del modal de detalle de venta | English: sale detail modal state
+  ventaDetalle = signal<IVentaItem | null>(null);
+  mostrarDetalleVenta = false;
+
   ngOnInit(): void {
     this.cargarVentas();
   }
@@ -170,6 +174,18 @@ export class FinanzasComponent implements OnInit {
   // Calcular IVA (19%) | Calculate VAT (19%)
   calcularIVA(subtotal: number): number {
     return Math.round(subtotal * 0.19);
+  }
+
+  // Español: abrir detalle de venta | English: open sale detail
+  abrirDetalle(venta: IVentaItem): void {
+    this.ventaDetalle.set(venta);
+    this.mostrarDetalleVenta = true;
+  }
+
+  // Español: cerrar detalle de venta | English: close sale detail
+  cerrarDetalle(): void {
+    this.mostrarDetalleVenta = false;
+    this.ventaDetalle.set(null);
   }
 
   // Formatear fecha ISO a legible | Format ISO date to readable

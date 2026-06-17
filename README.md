@@ -36,7 +36,19 @@ FoodMaster utiliza **Angular 19** como framework frontend, combinado con **Signa
 - **📲 Código QR**: Cada pedido de delivery genera un código QR único que enlaza al seguimiento en tiempo real, facilitando la comunicación con el cliente.
 
 ### Estado Actual
-🚀 **Arquitectura Multi-Contenedor Completa**. FoodMaster es un ecosistema 100% portable y autónomo con frontend (Angular/Nginx), backend (Flask) y base de datos (PostgreSQL) orquestados profesionalmente.
+🚀 **FoodMaster v1.0.0 — Sistema Completo de Gestión de Restaurante**
+
+FoodMaster es un ecosistema 100% portable y autónomo con frontend (Angular/Nginx), backend (Flask) y base de datos (PostgreSQL) orquestados profesionalmente.
+
+#### Módulos Implementados
+- **🍳 Monitor de Cocina (KDS):** Vista en tiempo real con pedidos activos (Pendiente + En Preparación) separados por origen Mesa/Domicilio. Refresco automático cada 15s. Solo visible para Administradores y Cocineros.
+- **📋 Gestión de Pedidos:** Tabla profesional con detalle de productos, estados claros (Pendiente / En Preparación / Pagado) e IVA dinámico.
+- **🪑 Gestión de Mesas:** Comandas estilo POS con apertura, agregado de productos y cierre/pago.
+- **🚚 Delivery Inteligente:** Asignación de domiciliarios, seguimiento con QR, pago en efectivo/transferencia.
+- **⚙️ Configuración del Negocio:** Nombre, datos de contacto, moneda e IVA dinámico desde panel admin.
+- **📊 Rentabilidad y Finanzas:** Análisis de márgenes, cierre de caja.
+- **👥 Gestión de Personal:** CRUD de empleados con roles.
+- **📦 Inventario Inteligente:** Control de insumos con descuento automático de stock.
 
 ## Instalación y Desarrollo Local
 

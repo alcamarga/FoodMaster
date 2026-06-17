@@ -45,4 +45,11 @@ Alcance: Este archivo aplica de forma transversal a todo el proyecto FoodMaster 
 
 Protocolo de Seguridad: Toda implementación relacionada con autenticación, manejo de secretos, o exposición de APIs debe cumplir estrictamente con los lineamientos definidos en el archivo seguridad.md. Ante la duda, el agente debe detenerse y consultar seguridad.md antes de escribir código.
 
+### PROTOCOLO DE DOCUMENTACIÓN OBLIGATORIO
+Al finalizar CUALQUIER tarea, el agente DEBE ejecutar automáticamente:
+1. **Actualizar `tasks.md`**: Mover la tarea a 'Completada' y añadir un resumen.
+2. **Actualizar `project_memory.ts`**: Registrar cambios en endpoints, nueva lógica o cambios en modelos de datos.
+3. **Actualizar `README.md`**: Documentar nuevas funcionalidades para el usuario final.
+4. **Verificación**: No se considerará la tarea finalizada hasta que estos 3 archivos estén actualizados.
+
 "Lógica sólida, orden total, seguridad blindada. 🚀"

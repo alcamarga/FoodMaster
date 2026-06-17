@@ -129,10 +129,15 @@ def _obtener_mesa_o_error(mesa_id: int) -> Mesa:
 
 
 def _obtener_comanda_activa(mesa_id: int) -> Comanda | None:
-    """Obtiene la comanda activa (abierta) de una mesa."""
-    return Comanda.query.filter_by(
-        mesa_id=mesa_id,
-        estado='abierta',
+    """
+    Obtiene la comanda activa de una mesa.
+    Retorna cualquier comanda cuyo estado NO sea 'pagada' ni 'cerrada'.
+    Esto asegura que el mesero vea la comanda incluso si la cocina la cambió
+    a 'en_preparacion' o 'listo' (despachado).
+    """
+    return Comanda.query.filter(
+        Comanda.mesa_id == mesa_id,
+        ~Comanda.estado.in_(['pagada', 'cerrada'])
     ).order_by(Comanda.id.desc()).first()
 
 
@@ -211,13 +216,27 @@ def obtener_mesa(mesa_id: int):
 # Comandas — Apertura y gestión
 # ---------------------------------------------------------------------------
 
+def _obtener_usuario_desde_token() -> int | None:
+    """
+    Extrae el ID del usuario desde el JWT en el header Authorization.
+    Retorna None si no hay token o es inválido.
+    """
+    import jwt as pyjwt
+    encabezado = request.headers.get('Authorization', '')
+    try:
+        token = encabezado.split()[1]
+        payload = pyjwt.decode(token, JWT_SECRET_MESA, algorithms=['HS256'])
+        return payload.get('id')
+    except Exception:
+        return None
+
+
 @mesa_bp.route('/mesas/<int:mesa_id>/comanda', methods=['POST'])
 def abrir_comanda(mesa_id: int):
     """
     POST /api/mesas/<id>/comanda — Abre una nueva comanda en la mesa.
     La mesa cambia a estado OCUPADA. No puede haber otra comanda activa.
-
-    Body (opcional): { "usuario_id": 1 }
+    El usuario_id se obtiene del JWT del usuario autenticado.
     """
     try:
         mesa = _obtener_mesa_o_error(mesa_id)
@@ -238,10 +257,20 @@ def abrir_comanda(mesa_id: int):
                 'message': f'La mesa #{mesa.numero_mesa} ya está OCUPADA',
             }), 409
 
+        # Español: obtener usuario autenticado desde el JWT (fuente autoritativa)
+        # English: get authenticated user from JWT (authoritative source)
+        usuario_id = _obtener_usuario_desde_token()
+        if not usuario_id:
+            # Español: fallback al body para compatibilidad | English: body fallback for compatibility
+            usuario_id = datos.get('usuario_id')
+
+        if not usuario_id:
+            logger.warning('⚠️ Comanda #%s abierta sin usuario_id — no hay token JWT en la petición', mesa_id)
+
         # Crear comanda
         comanda = Comanda(
             mesa_id=mesa_id,
-            usuario_id=datos.get('usuario_id'),
+            usuario_id=usuario_id,
             estado='abierta',
             total=0.00,
             articulos_json='[]',
@@ -253,7 +282,7 @@ def abrir_comanda(mesa_id: int):
         mesa.estado = 'OCUPADA'
         db.session.commit()
 
-        logger.info('🍽️ Comanda #%s abierta en mesa #%s', comanda.id, mesa.numero_mesa)
+        logger.info('🍽️ Comanda #%s abierta en mesa #%s (usuario_id=%s)', comanda.id, mesa.numero_mesa, usuario_id)
         return jsonify({
             'status': 'success',
             'message': f'Comanda abierta en mesa #{mesa.numero_mesa}',
@@ -396,10 +425,10 @@ def pagar_comanda(mesa_id: int, comanda_id: int):
         if not comanda or comanda.mesa_id != mesa_id:
             return jsonify({'status': 'error', 'message': 'Comanda no encontrada en esta mesa'}), 404
 
-        if comanda.estado != 'abierta':
+        if comanda.estado != 'listo':
             return jsonify({
                 'status': 'error',
-                'message': f'La comanda ya está {comanda.estado}',
+                'message': f'La comanda debe estar en estado "listo" (despachado por cocina) para poder pagar. Estado actual: {comanda.estado}',
             }), 400
 
         # Español: crear Pedido desde la comanda pagada | English: create Pedido from paid comanda
@@ -440,10 +469,10 @@ def cerrar_comanda(mesa_id: int, comanda_id: int):
         if not comanda or comanda.mesa_id != mesa_id:
             return jsonify({'status': 'error', 'message': 'Comanda no encontrada en esta mesa'}), 404
 
-        if comanda.estado != 'abierta':
+        if comanda.estado != 'listo':
             return jsonify({
                 'status': 'error',
-                'message': f'La comanda ya está {comanda.estado}',
+                'message': f'La comanda debe estar en estado "listo" (despachado por cocina) para poder cerrarla. Estado actual: {comanda.estado}',
             }), 400
 
         # Español: crear Pedido desde la comanda cerrada (sin pago) | English: create Pedido from closed comanda (no payment)

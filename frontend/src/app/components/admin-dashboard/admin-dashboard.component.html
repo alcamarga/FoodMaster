@@ -68,12 +68,28 @@
           🍽️ Mesas y Comandas
         </a>
       </li>
+      <!-- Monitor de Cocina — visible para admin y cocinero | Kitchen Monitor — visible for admin and cook -->
+      <li class="nav-item ms-2" *ngIf="usuario?.rol === 'admin' || usuario?.rol === 'cocinero'">
+        <a class="nav-link fw-bold"
+          [ngClass]="pestanaActiva === 'cocina' ? 'text-dark bg-warning border-warning' : 'text-warning'"
+          (click)="cambiarPestana('cocina')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
+          👨‍🍳 Monitor de Cocina
+        </a>
+      </li>
       <!-- Nueva pestaña de finanzas | New finance tab -->
       <li class="nav-item ms-2" *ngIf="usuario?.rol === 'admin'">
         <a class="nav-link fw-bold"
           [ngClass]="pestanaActiva === 'finanzas' ? 'text-dark bg-warning border-warning' : 'text-success'"
           (click)="cambiarPestana('finanzas')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
           🗃️ Cierre y Finanzas
+        </a>
+      </li>
+      <!-- Nueva pestaña de configuración | New config tab -->
+      <li class="nav-item ms-2" *ngIf="usuario?.rol === 'admin'">
+        <a class="nav-link fw-bold"
+          [ngClass]="pestanaActiva === 'configuracion' ? 'text-dark bg-warning border-warning' : 'text-info'"
+          (click)="cambiarPestana('configuracion')" style="cursor: pointer; font-size: 1.1rem; border-radius: 8px 8px 0 0;">
+          ⚙️ Configuración
         </a>
       </li>
     </ul>
@@ -109,8 +125,16 @@
       <app-mesas></app-mesas>
     </div>
 
+    <div *ngIf="pestanaActiva === 'cocina'">
+      <app-cocina></app-cocina>
+    </div>
+
     <div *ngIf="pestanaActiva === 'finanzas' && usuario?.rol === 'admin'">
       <app-finanzas></app-finanzas>
+    </div>
+
+    <div *ngIf="pestanaActiva === 'configuracion' && usuario?.rol === 'admin'">
+      <app-configuracion></app-configuracion>
     </div>
   </div>
 </div>

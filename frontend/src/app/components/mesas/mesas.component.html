@@ -101,10 +101,13 @@
       <!-- Cuerpo del modal | Modal body -->
       <div class="modal-comanda-body">
         @if (comandaActiva(); as comanda) {
-          <!-- Comanda activa: mostrar artículos | Active comanda: show items -->
+          <!-- Comanda activa: mostrar artículos y estado | Active comanda: show items and state -->
           <div class="comanda-info mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="badge bg-warning text-dark">Comanda #{{ comanda.id }}</span>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning text-dark">Comanda #{{ comanda.id }}</span>
+                <span [ngClass]="getEstadoClase(comanda.estado)">{{ getEstadoLabel(comanda.estado) }}</span>
+              </div>
               <span class="text-muted small">{{ comanda.fecha | date:'short' }}</span>
             </div>
           </div>
@@ -156,21 +159,34 @@
             </div>
           }
 
+          <!-- Advertencia: comanda sin despachar | Warning: undispatch comanda -->
+          @if (!comandaListaParaPago()) {
+            <div class="alert alert-warning py-2 small mb-2" role="alert" style="border-left: 4px solid #ffc107;">
+              ⏳ <strong>Pedido en preparación</strong> — Espera a que cocina despache la comanda para poder cobrar.
+            </div>
+          }
+
           <!-- Botones de acción para comanda activa | Action buttons for active comanda -->
           <div class="comanda-acciones d-flex gap-2 mt-3">
-            <button class="btn btn-success flex-fill" (click)="abrirModalProducto()">
-              ➕ Agregar Producto
-            </button>
+            @if (comanda.estado === 'abierta') {
+              <button class="btn btn-success flex-fill" (click)="abrirModalProducto()">
+                ➕ Agregar Producto
+              </button>
+            }
             <button type="button" class="btn-pago-efectivo" (click)="abrirPagoEfectivo()"
-                    [disabled]="cargandoAccionMesa || totalCuentaReal <= 0">
+                    [disabled]="cargandoAccionMesa || !comandaListaParaPago() || totalCuentaReal <= 0"
+                    [title]="!comandaListaParaPago() ? 'Cocina debe despachar la comanda primero' : ''">
                     💰 Pagar en Efectivo
                   </button>
                   <button type="button" class="btn-pago-transf" (click)="cobrarYFacturarMesa('Transferencia')"
-                    [disabled]="cargandoAccionMesa || totalCuentaReal <= 0">
+                    [disabled]="cargandoAccionMesa || !comandaListaParaPago() || totalCuentaReal <= 0"
+                    [title]="!comandaListaParaPago() ? 'Cocina debe despachar la comanda primero' : ''">
                     📱 Pagar Transferencia
                   </button>
-            <button class="btn btn-outline-secondary" (click)="cerrarComanda()">
-              🔒 Cerrar
+            <button class="btn btn-outline-secondary" (click)="cerrarComanda()"
+                    [disabled]="cargandoAccionMesa || !comandaListaParaPago()"
+                    [title]="!comandaListaParaPago() ? 'Cocina debe despachar la comanda primero' : ''">
+              🔒 Cerrar Mesa
             </button>
           </div>
         } @else {
@@ -328,13 +344,7 @@
                     <td>{{ comanda.articulos.length }} items</td>
                     <td class="text-end text-warning fw-bold">${{ comanda.total | number:'1.0-0' }}</td>
                     <td>
-                      @if (comanda.estado === 'pagada') {
-                        <span class="badge bg-success">Pagada ✅</span>
-                      } @else if (comanda.estado === 'cerrada') {
-                        <span class="badge bg-secondary">Cerrada 🔒</span>
-                      } @else {
-                        <span class="badge bg-warning text-dark">Abierta 🟡</span>
-                      }
+                      <span [ngClass]="getEstadoClase(comanda.estado)">{{ getEstadoLabel(comanda.estado) }}</span>
                     </td>
                   </tr>
                 }

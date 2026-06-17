@@ -15,6 +15,8 @@ import { GestionPersonalComponent } from './gestion-personal/gestion-personal.co
 import { RentabilidadComponent } from './rentabilidad/rentabilidad.component';
 import { MesasComponent } from '../mesas/mesas.component';
 import { FinanzasComponent } from '../finanzas/finanzas.component';
+import { ConfiguracionComponent } from './configuracion/configuracion.component';
+import { CocinaComponent } from '../cocina/cocina.component';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -29,7 +31,9 @@ import { FinanzasComponent } from '../finanzas/finanzas.component';
     GestionPersonalComponent,
     RentabilidadComponent,
     MesasComponent,
-    FinanzasComponent
+    FinanzasComponent,
+    ConfiguracionComponent,
+    CocinaComponent
   ],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.css']
@@ -43,7 +47,7 @@ export class AdminDashboardComponent implements OnInit {
   ) {
     this.usuario = this.auth.obtenerUsuarioActual();
     if (this.usuario?.rol === 'cocinero') {
-      this.pestanaActiva = 'pedidos';
+      this.pestanaActiva = 'cocina';
     }
   }
 

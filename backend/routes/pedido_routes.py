@@ -1,14 +1,20 @@
 import json
+import logging
+import jwt as pyjwt
 from flask import Blueprint, jsonify, request
 from models.database import db
 from models.pedido import Pedido
 from models.receta import Receta
 from models.insumo import Insumo
+from models.configuracion import Configuracion
+
+logger = logging.getLogger(__name__)
 
 # NOTE: La cadena de conexión a PostgreSQL se configura a través de la variable de entorno DATABASE_URL
 # en el archivo de configuración (config.py) usando os.getenv('DATABASE_URL').
 
 pedidos_blueprint = Blueprint('pedidos', __name__)
+JWT_SECRET = "pizzeria_secret_key_fixed_2026_super_safe"
 
 @pedidos_blueprint.route('/pedidos', methods=['GET'])
 def get_pedidos():
@@ -39,15 +45,31 @@ def crear_pedido():
                 float(a.get('precio', a.get('precio_unitario', 0))) * float(a.get('cantidad', 1))
                 for a in articulos_brutos
             )
-            iva = round(subtotal * 0.19)
+            porcentaje_iva = Configuracion.obtener_iva_decimal()
+            iva = round(subtotal * porcentaje_iva)
             total_calculado = subtotal + iva
         except Exception:
             subtotal = 0
             iva = 0
             total_calculado = float(datos.get('total', 0))
 
+        # Español: obtener usuario autenticado desde el JWT como fuente autoritativa
+        # English: get authenticated user from JWT as authoritative source
+        cliente_id = None
+        encabezado = request.headers.get('Authorization', '')
+        try:
+            token = encabezado.split()[1]
+            payload = pyjwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+            cliente_id = payload.get('id')
+        except Exception:
+            # Español: fallback al body para compatibilidad | English: body fallback for compatibility
+            cliente_id = datos.get('usuario_id') or datos.get('cliente_id')
+
+        if not cliente_id:
+            logger.warning('⚠️ Pedido creado sin cliente_id — no hay token JWT ni usuario_id en body')
+
         nuevo_pedido = Pedido(
-            cliente_id=datos.get('usuario_id') or datos.get('cliente_id'),
+            cliente_id=cliente_id,
             articulos_json=articulos_str,
             total=total_calculado,
             estado=datos.get('estado', 'pendiente'),
@@ -106,8 +128,8 @@ def actualizar_estado_pedido(pedido_id):
             return jsonify({"error": "Pedido no encontrado"}), 404
         estado_anterior = pedido.estado.upper()
         pedido.estado = nuevo_estado
-        # Descuento de inventario solo al pasar a ENTREGADO
-        if nuevo_estado == 'ENTREGADO' and estado_anterior != 'ENTREGADO':
+        # Descuento de inventario al pasar a ENTREGADO o PAGADO
+        if nuevo_estado in ('ENTREGADO', 'PAGADO') and estado_anterior not in ('ENTREGADO', 'PAGADO'):
             articulos = []
             try:
                 articulos = json.loads(pedido.articulos_json) if pedido.articulos_json else []

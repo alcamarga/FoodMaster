@@ -11,28 +11,17 @@ services:
       - app_pizzeria
     restart: always
 
-  # Backend en Flask
+  # Backend en Flask con SQLite local
   app_pizzeria:
-
     build: .
     ports:
       - "5000:5000"
     environment:
-      environment:
-      - DATABASE_URL=postgresql://pizzaadmin:Java**2025@pizzaos-db.postgres.database.azure.com:5432/postgres?sslmode=require
-    depends_on:
-      - db_pizzeria
-
-
-  # La base de datos (como la que ya probamos)
-  db_pizzeria:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: camilo_admin
-      POSTGRES_PASSWORD: pizzapassword
-      POSTGRES_DB: pizzeria_db
+      # Español: SQLite por defecto — sin depender de PostgreSQL externo
+      # English: SQLite by default — no external PostgreSQL dependency
+      - DATABASE_URL=sqlite:///foodmaster.db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - foodmaster_data:/app/instance
 
 volumes:
-  postgres_data:
+  foodmaster_data:

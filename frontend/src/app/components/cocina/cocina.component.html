@@ -1,41 +1,53 @@
 <!--
   **Creado por:** Camilo Martinez Galarza (CMG-Solutions)
-  **Fecha:** 15 de junio de 2026
-  **Estado:** Desarrollo
+  **Fecha:** 17 de junio de 2026
+  **Estado:** Producción — Tarea #7: Monitor de Cocina
 
-  Plantilla del módulo de cocina — diseño de alto contraste para entornos de cocina | Kitchen module template — high-contrast design for kitchen environments
+  Monitor de Cocina — Muestra SOLO pedidos activos (Pendiente + En Preparación)
+  Los items 'Despachado' desaparecen del monitor y se consolidan en Gestión de Pedidos al pagar
+  Kitchen Monitor — Shows ONLY active orders (Pending + In Preparation)
+  'Dispatched' items disappear from monitor and consolidate in Order Management on payment
 -->
 
 <div class="cocina-container">
   <!-- Encabezado del dashboard de cocina | Kitchen dashboard header -->
   <header class="cocina-header">
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h1 class="cocina-title mb-0">🍳 Panel de Cocina</h1>
-      <button class="btn btn-outline-light btn-sm" (click)="cargarComandas()" [disabled]="cargando()">
-        🔄 Refrescar
-      </button>
+      <h1 class="cocina-title mb-0">👨‍🍳 Monitor de Cocina</h1>
+      <div>
+        <button class="btn btn-outline-light btn-sm me-2" (click)="cargarItems()" [disabled]="cargando()">
+          🔄 Refrescar
+        </button>
+      </div>
     </div>
 
-    <!-- KPIs de cocina | Kitchen KPIs -->
+    <!-- KPIs del monitor (solo activos: Pendiente + En Preparación) | Monitor KPIs (only active) -->
     <div class="row g-2 mb-3">
-      <div class="col-4">
-        <div class="kpi-card kpi-pendientes p-2 text-center">
+      <div class="col-6">
+        <div class="kpi-card kpi-pendientes p-3 text-center">
           <div class="kpi-numero">{{ totalPendientes() }}</div>
-          <div class="kpi-label">Pendientes</div>
+          <div class="kpi-label">🆕 Pendientes</div>
         </div>
       </div>
-      <div class="col-4">
-        <div class="kpi-card kpi-cocinando p-2 text-center">
+      <div class="col-6">
+        <div class="kpi-card kpi-cocinando p-3 text-center">
           <div class="kpi-numero">{{ totalEnPreparacion() }}</div>
-          <div class="kpi-label">En Cocina</div>
+          <div class="kpi-label">👨‍🍳 En Cocina</div>
         </div>
       </div>
-      <div class="col-4">
-        <div class="kpi-card kpi-listo p-2 text-center">
-          <div class="kpi-numero">{{ totalListos() }}</div>
-          <div class="kpi-label">Listos</div>
-        </div>
-      </div>
+    </div>
+
+    <!-- Filtros de origen | Origin filters -->
+    <div class="filtros-origen mb-3">
+      <button class="btn btn-filtro" [class.active]="!filtroOrigen()" (click)="setFiltroOrigen(null)">
+        📋 Todos
+      </button>
+      <button class="btn btn-filtro" [class.active]="filtroOrigen() === 'mesa'" (click)="setFiltroOrigen('mesa')">
+        🍽️ Mesas
+      </button>
+      <button class="btn btn-filtro" [class.active]="filtroOrigen() === 'domicilio'" (click)="setFiltroOrigen('domicilio')">
+        🛵 Domicilios
+      </button>
     </div>
 
     <!-- Mensajes de estado | Status messages -->
@@ -57,46 +69,72 @@
   @if (cargando()) {
     <div class="text-center py-5">
       <div class="spinner-border text-warning" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">Cargando comandas...</span>
+        <span class="visually-hidden">Cargando pedidos de cocina...</span>
       </div>
-      <p class="text-white-50 mt-3 fs-5">Cargando comandas activas...</p>
+      <p class="text-white-50 mt-3 fs-5">Cargando pedidos de cocina...</p>
     </div>
   }
 
-  <!-- Grid de tarjetas de comanda | Comanda cards grid -->
+  <!-- Grid de tarjetas de items | Items cards grid -->
   @if (!cargando()) {
-    @if (comandas().length === 0) {
+    @if (itemsFiltrados().length === 0) {
       <div class="text-center py-5">
         <div style="font-size: 5rem;">🍽️</div>
-        <h3 class="text-white mt-3">No hay comandas activas</h3>
+        <h3 class="text-white mt-3">No hay pedidos activos</h3>
         <p class="text-white-50">La cocina está al día. ¡Buen trabajo!</p>
       </div>
     }
 
-    <div class="comandas-grid">
-      @for (comanda of comandas(); track comanda.id) {
-        <div class="comanda-card" [ngClass]="comanda.estado">
+    <div class="items-grid">
+      @for (item of itemsFiltrados(); track item.id + '-' + item.tipo) {
+        <div class="item-card" [ngClass]="[item.estado, item.tipo]">
           <!-- Cabecera de tarjeta | Card header -->
           <div class="card-header-cocina">
             <div class="d-flex justify-content-between align-items-center">
               <div>
-                <span class="mesa-badge">🍽️ Mesa #{{ comanda.numero_mesa }}</span>
-                <span class="comanda-id ms-2">#{{ comanda.id }}</span>
+                @if (item.tipo === 'mesa') {
+                  <span class="origen-badge origen-mesa">🍽️ Mesa #{{ item.numero_mesa }}</span>
+                } @else {
+                  <span class="origen-badge origen-domicilio">🛵 Domicilio</span>
+                }
+                <span class="item-id ms-2">#{{ item.id }}</span>
               </div>
-              <span class="tiempo-badge" [ngClass]="claseEstadoTiempo(comanda.fecha)">
-                ⏱️ {{ comanda.tiempo_espera || '—' }}
+              <span class="tiempo-badge" [ngClass]="claseEstadoTiempo(item.fecha)">
+                ⏱️ {{ item.tiempo_espera || '—' }}
               </span>
             </div>
+
+            <!-- Info adicional del cliente (Domicilio) -->
+            @if (item.tipo === 'domicilio') {
+              <div class="cliente-info mt-2">
+                @if (item.cliente_nombre) {
+                  <div class="dato-cliente">
+                    <span class="label">Cliente:</span>
+                    <span class="valor">{{ item.cliente_nombre }}</span>
+                  </div>
+                }
+                @if (item.direccion_entrega) {
+                  <div class="dato-cliente">
+                    <span class="label">Dirección:</span>
+                    <span class="valor">{{ item.direccion_entrega }}</span>
+                  </div>
+                }
+                @if (item.telefono_contacto) {
+                  <div class="dato-cliente">
+                    <span class="label">Teléfono:</span>
+                    <span class="valor">{{ item.telefono_contacto }}</span>
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           <!-- Estado actual | Current status -->
           <div class="card-estado text-center py-2">
-            @if (comanda.estado === 'abierta') {
-              <span class="estado-badge estado-nuevo">🆕 NUEVA — Pendiente</span>
-            } @else if (comanda.estado === 'en_preparacion') {
+            @if (item.estado === 'pendiente') {
+              <span class="estado-badge estado-nuevo">🆕 Pendiente</span>
+            } @else if (item.estado === 'en_preparacion') {
               <span class="estado-badge estado-cocinando">👨‍🍳 En Preparación</span>
-            } @else if (comanda.estado === 'listo') {
-              <span class="estado-badge estado-listo">✅ Listo para Servir</span>
             }
           </div>
 
@@ -110,7 +148,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (art of comanda.articulos; track $index) {
+                @for (art of item.articulos; track $index) {
                   <tr>
                     <td class="fw-bold">{{ art.nombre }}</td>
                     <td class="text-center fw-bold text-warning">x{{ art.cantidad }}</td>
@@ -120,20 +158,16 @@
             </table>
           </div>
 
-          <!-- Botones de acción | Action buttons -->
+          <!-- Botones de acción (solo para estados activos) | Action buttons (active states only) -->
           <div class="card-acciones p-2">
-            @if (comanda.estado === 'abierta') {
-              <button class="btn btn-cocina btn-preparar w-100" (click)="iniciarPreparacion(comanda.id)">
+            @if (item.estado === 'pendiente') {
+              <button class="btn btn-cocina btn-preparar w-100" (click)="iniciarPreparacion(item)">
                 👨‍🍳 Iniciar Preparación
               </button>
-            } @else if (comanda.estado === 'en_preparacion') {
-              <button class="btn btn-cocina btn-listo w-100" (click)="marcarListo(comanda.id)">
-                ✅ Marcar como Listo
+            } @else if (item.estado === 'en_preparacion') {
+              <button class="btn btn-cocina btn-despachar w-100" (click)="marcarDespachado(item)">
+                📦 Despachar
               </button>
-            } @else if (comanda.estado === 'listo') {
-              <div class="text-center text-success fw-bold small py-1">
-                ✅ Esperando al mesero para servir
-              </div>
             }
           </div>
         </div>
@@ -141,11 +175,12 @@
     </div>
   }
 
-  <!-- Footer con auto-refresh info | Footer with auto-refresh info -->
+  <!-- Footer con información del monitor | Footer with monitor info -->
   <footer class="cocina-footer text-center mt-4">
     <small class="text-white-50">
       🔄 Actualización automática cada 15s &nbsp;|&nbsp;
-      <a class="text-warning text-decoration-none" (click)="salir()" style="cursor: pointer;">🚪 Salir</a>
+      Solo se muestran pedidos activos (Pendiente + En Preparación) &nbsp;|&nbsp;
+      <a class="text-warning text-decoration-none" (click)="salir()" style="cursor: pointer;">🔒 Cerrar Sesión</a>
     </small>
   </footer>
 </div>

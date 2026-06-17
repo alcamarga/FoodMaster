@@ -181,6 +181,43 @@
   border-radius: 3px;
 }
 
+/* ===== Modal de detalle de venta | Sale detail modal ===== */
+.modal-detalle-venta {
+  max-width: 600px;
+}
+
+.detalle-meta .tipo-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.detalle-meta .badge-mesa {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.detalle-totales hr {
+  opacity: 0.3;
+}
+
+/* ===== Botón Ver detalles ===== */
+.btn-outline-warning {
+  border-color: rgba(212, 175, 55, 0.4);
+  color: #d4af37;
+  transition: all 0.2s;
+}
+
+.btn-outline-warning:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  color: #d4af37;
+}
+
 /* Responsive | Responsive */
 @media (max-width: 576px) {
   .finanzas-header .d-flex {
