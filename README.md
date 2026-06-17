@@ -95,5 +95,5 @@ El proyecto integra una infraestructura de IA local auto-gestionada para auditor
 - **Caso de Uso**: Auditoría de la capa de seguridad de Flask, análisis de headers CORS, y revisión de código automatizada.
 
 ## Licencia
-**Desarrollado por:** Camilo Martinez Galarza (CMG-Solutions)  
+**Desarrollado por:** Camilo Martinez Galarza 🧑🏽‍💻(CMG-Solutions)  
 **Proyecto:** Personal-Proprietary — Todos los derechos reservados.
