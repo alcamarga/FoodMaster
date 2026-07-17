@@ -1,5 +1,22 @@
-.aider*
+# Entornos virtuales
 .venv/
+venv/
+env/
+
+# Archivos de configuración de entorno (¡CRÍTICO PARA SEGURIDAD!)
+.env
+*.env.local
+
+# Archivos de sistema y respaldo
+.DS_Store
+Thumbs.db
+*.bak
+*.log
+
+# Bases de datos y archivos temporales
+backend/instance/foodmaster.db
 __pycache__/
 .angular/
 output/
+dist/
+build/
